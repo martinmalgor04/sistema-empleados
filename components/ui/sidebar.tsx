@@ -3,14 +3,16 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { PanelLeft } from "lucide-react"
+import { PanelLeft, MenuIcon, HomeIcon, UserPlusIcon, ShoppingCartIcon, PillIcon, LogOutIcon } from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -760,4 +762,77 @@ export {
   SidebarSeparator,
   SidebarTrigger,
   useSidebar,
+}
+
+export function Sidebar() {
+  const pathname = usePathname()
+
+  const renderNavLinks = (isMobile = false) =>
+    navItems.map((item) => (
+      <Link key={item.label} href={item.href} legacyBehavior passHref>
+        <Button
+          variant={pathname === item.href ? "secondary" : "ghost"}
+          className={cn("w-full justify-start", isMobile && "text-lg py-6")}
+          asChild={!isMobile}
+        >
+          <a className={cn(isMobile ? "flex items-center gap-4 w-full" : "")}>
+            <item.icon className={cn("h-5 w-5", isMobile ? "h-6 w-6" : "")} />
+            {item.label}
+          </a>
+        </Button>
+      </Link>
+    ))
+
+  return (
+    <>
+      <div className="hidden md:flex md:flex-col md:w-64 bg-card border-r fixed h-full">
+        <div className="flex items-center justify-center h-16 border-b">
+          <h1 className="text-xl font-semibold">Gestión App</h1>
+        </div>
+        <nav className="flex-grow p-4 space-y-2">
+          {renderNavLinks()}
+        </nav>
+        <div className="p-4 border-t">
+          <Link href="/login" legacyBehavior passHref>
+             <Button variant="outline" className="w-full justify-start">
+                <LogOutIcon className="mr-2 h-5 w-5" />
+                Cerrar Sesión
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      <header className="md:hidden sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="mr-4">
+                <MenuIcon className="h-6 w-6" />
+                <span className="sr-only">Abrir menú</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-72 sm:w-80">
+              <div className="flex items-center justify-start h-16 border-b mb-4 px-6">
+                 <h1 className="text-xl font-semibold">Gestión App</h1>
+              </div>
+              <nav className="flex flex-col space-y-3 px-3">
+                {renderNavLinks(true)}
+                 <div className="pt-4 border-t mt-2">
+                    <Link href="/login" legacyBehavior passHref> 
+                        <Button variant="outline" className="w-full justify-start text-lg py-6">
+                            <LogOutIcon className="mr-4 h-6 w-6" />
+                            Cerrar Sesión
+                        </Button>
+                    </Link>
+                </div>
+              </nav>
+            </SheetContent>
+          </Sheet>
+          <Link href="/menu-principal" className="flex items-center">
+             <h1 className="text-lg font-semibold ml-2">Gestión App</h1>
+          </Link>
+        </div>
+      </header>
+    </>
+  )
 }
