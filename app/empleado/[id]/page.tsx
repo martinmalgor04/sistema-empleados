@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,17 +12,48 @@ import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 
-// Datos de ejemplo para el prototipo
-const empleado = {
-  id: 1,
-  nombre: "Cecilia Ramos",
-  dni: "12345678",
-  telefono: "+54 9 11 1234-5678",
-  email: "cecilia.ramos@email.com",
-  cargo: "Enfermera",
-  turno: "Mañana",
-  avatar: "/placeholder.svg?height=200&width=200",
-}
+// Datos de ejemplo para empleados (mismo que en la lista de empleados)
+const empleadosData = [
+  {
+    id: "1",
+    nombre: "Carmen Ruiz",
+    apellido: "González",
+    fechaNacimiento: "1985-03-12",
+    dni: "12345678A",
+    telefono: "+54 9 11 1234-5678",
+    email: "carmen.ruiz@eldercare.com",
+    rol: "Enfermera",
+    turno: "Mañana",
+    estado: "Activo",
+    avatar: "/placeholder-user.jpg",
+  },
+  {
+    id: "2",
+    nombre: "Luis Martínez",
+    apellido: "Pérez",
+    fechaNacimiento: "1990-07-21",
+    dni: "87654321B",
+    telefono: "+54 9 11 9876-5432",
+    email: "luis.martinez@eldercare.com",
+    rol: "Médico",
+    turno: "Tarde",
+    estado: "Activo",
+    avatar: "/placeholder-user.jpg",
+  },
+  {
+    id: "3",
+    nombre: "Ana García",
+    apellido: "López",
+    fechaNacimiento: "1992-11-02",
+    dni: "11223344C",
+    telefono: "+54 9 11 5555-6666",
+    email: "ana.garcia@eldercare.com",
+    rol: "Cuidadora",
+    turno: "Noche",
+    estado: "Suspendido",
+    avatar: "/placeholder-user.jpg",
+  },
+]
 
 // Datos de ejemplo para el presentismo del empleado actual
 const presentismoData = [
@@ -31,10 +65,35 @@ const presentismoData = [
 ]
 
 export default function EmpleadoPage({ params }: { params: { id: string } }) {
+  const [empleado, setEmpleado] = useState(empleadosData.find(e => e.id === params.id))
+  
+  useEffect(() => {
+    const empleadoEncontrado = empleadosData.find(e => e.id === params.id)
+    setEmpleado(empleadoEncontrado)
+  }, [params.id])
+
+  if (!empleado) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="flex justify-center items-center relative mb-6">
+          <Link href="/empleados" className="absolute left-0">
+            <Button variant="ghost" className="p-0 h-auto">
+              <ArrowLeft className="h-6 w-6" />
+            </Button>
+          </Link>
+        </div>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Empleado no encontrado</h1>
+          <p className="text-muted-foreground mt-2">El empleado que buscas no existe.</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-center items-center relative mb-6">
-        <Link href="/" className="absolute left-0">
+        <Link href="/empleados" className="absolute left-0">
           <Button variant="ghost" className="p-0 h-auto">
             <ArrowLeft className="h-6 w-6" />
           </Button>
@@ -43,10 +102,14 @@ export default function EmpleadoPage({ params }: { params: { id: string } }) {
 
       <div className="flex flex-col items-center mb-6">
         <Avatar className="h-40 w-40 mb-4">
-          <AvatarImage src={empleado.avatar || "/placeholder.svg"} alt={empleado.nombre} />
-          <AvatarFallback className="text-4xl">{empleado.nombre.charAt(0)}</AvatarFallback>
+          <AvatarImage src={empleado.avatar} alt={empleado.nombre} />
+          <AvatarFallback className="text-4xl">{empleado.nombre.charAt(0)}{empleado.apellido?.charAt(0) || ''}</AvatarFallback>
         </Avatar>
-        <h1 className="text-4xl font-bold mb-6">{empleado.nombre}</h1>
+        <h1 className="text-4xl font-bold mb-2">{empleado.nombre} {empleado.apellido}</h1>
+        <Badge variant={empleado.estado === "Activo" ? "default" : "destructive"}
+               className={empleado.estado === "Activo" ? "bg-green-500 hover:bg-green-600 text-white" : "bg-red-500 hover:bg-red-600 text-white"}>
+          {empleado.estado}
+        </Badge>
       </div>
 
       <Tabs defaultValue="informacion" className="max-w-3xl mx-auto">
@@ -80,7 +143,7 @@ export default function EmpleadoPage({ params }: { params: { id: string } }) {
                 </div>
                 <div className="grid grid-cols-[1fr_2fr] gap-4">
                   <div className="font-medium">Cargo</div>
-                  <div>{empleado.cargo}</div>
+                  <div>{empleado.rol}</div>
                 </div>
                 <div className="grid grid-cols-[1fr_2fr] gap-4">
                   <div className="font-medium">Turno</div>

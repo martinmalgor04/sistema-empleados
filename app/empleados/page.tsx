@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react';
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -54,6 +55,22 @@ const empleados = [
 ];
 
 export default function EmpleadosPage() {
+  const router = useRouter();
+  
+  const handleVerPerfil = (empleadoId: string) => {
+    router.push(`/empleado/${empleadoId}`);
+  };
+  
+  const handleEditarEmpleado = (empleadoId: string) => {
+    // TODO: Implementar navegación a página de edición
+    console.log("Editar empleado", empleadoId);
+  };
+  
+  const handleSuspenderEmpleado = (empleadoId: string) => {
+    // TODO: Implementar lógica de suspensión
+    console.log("Suspender empleado", empleadoId);
+  };
+
   // TODO: Implementar estados para filtros, búsqueda, paginación, etc.
 
   return (
@@ -138,10 +155,10 @@ export default function EmpleadosPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => console.log("Ver perfil", empleado.id)}>Ver Perfil</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => console.log("Editar", empleado.id)}>Editar Empleado</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleVerPerfil(empleado.id)}>Ver Perfil</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditarEmpleado(empleado.id)}>Editar Empleado</DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600 hover:!text-red-600 hover:!bg-red-100">
+                          <DropdownMenuItem className="text-red-600 hover:!text-red-600 hover:!bg-red-100" onClick={() => handleSuspenderEmpleado(empleado.id)}>
                             Suspender Empleado
                           </DropdownMenuItem>
                         </DropdownMenuContent>
