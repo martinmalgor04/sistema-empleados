@@ -9,7 +9,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { MenuIcon, HomeIcon, UserPlusIcon, ShoppingCartIcon, PillIcon, LogOutIcon, UserCogIcon, ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react"
+import { MenuIcon, HomeIcon, UserPlusIcon, ShoppingCartIcon, PillIcon, LogOutIcon, UserCogIcon, ChevronsLeftIcon, ChevronsRightIcon, UserIcon } from "lucide-react"
 import React, { useEffect, useState } from "react"
 
 // Definición base de los items de navegación
@@ -19,6 +19,7 @@ const baseNavItems = [
   { href: "/registro-asistencia", label: "Reg. Asistencia", icon: UserPlusIcon, roles: ["supervisor", "enfermero"] },
   { href: "/compras", label: "Compras", icon: ShoppingCartIcon, roles: ["supervisor"] }, // Solo supervisor por ahora
   { href: "/menu-medicamentos", label: "Medicamentos", icon: PillIcon, roles: ["supervisor", "enfermero"] },
+  { href: "/perfil", label: "Mi Perfil", icon: UserIcon, roles: ["supervisor", "enfermero"] },
 ]
 
 interface CustomSidebarProps {
