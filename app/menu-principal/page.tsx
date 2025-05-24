@@ -31,7 +31,7 @@ export default function MenuPrincipalPage() {
   // }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+    <div className="flex flex-col items-center justify-center py-8">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl">Hola, {nombreUsuario}!</CardTitle>

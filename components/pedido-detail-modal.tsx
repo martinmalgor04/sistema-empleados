@@ -1,20 +1,19 @@
 'use client'
 
-import React from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
+import React from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { 
-  CalendarIcon, 
-  PackageIcon, 
-  UserIcon, 
-  PhoneIcon, 
-  MailIcon, 
-  DollarSignIcon,
-  ClockIcon,
-  AlertCircleIcon
-} from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+import { CalendarIcon, PhoneIcon, MailIcon, PackageIcon, DollarSignIcon } from "lucide-react"
+import { formatCurrency, formatDate } from "@/src/utils/formatters"
 
 interface Pedido {
   id: number
@@ -31,7 +30,7 @@ interface Pedido {
     email: string
   }
   costo_total: number
-  observaciones: string
+  observaciones?: string
 }
 
 interface PedidoDetailModalProps {
@@ -40,120 +39,105 @@ interface PedidoDetailModalProps {
   onClose: () => void
 }
 
+const getStatusBadge = (estado: string) => {
+  switch (estado.toLowerCase()) {
+    case 'pendiente':
+      return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendiente</Badge>
+    case 'en_transito':
+      return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">En tránsito</Badge>
+    case 'recibido':
+      return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">Recibido</Badge>
+    case 'cancelado':
+      return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">Cancelado</Badge>
+    default:
+      return <Badge variant="outline">{estado}</Badge>
+  }
+}
+
 export default function PedidoDetailModal({ pedido, isOpen, onClose }: PedidoDetailModalProps) {
   if (!pedido) return null
 
-  const getEstadoBadge = (estado: string) => {
-    switch (estado) {
-      case "pendiente":
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Pendiente</Badge>
-      case "en_transito":
-        return <Badge variant="default" className="bg-blue-100 text-blue-800">En tránsito</Badge>
-      case "recibido":
-        return <Badge variant="default" className="bg-green-100 text-green-800">Recibido</Badge>
-      case "cancelado":
-        return <Badge variant="destructive">Cancelado</Badge>
-      default:
-        return <Badge variant="outline">{estado}</Badge>
-    }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    })
-  }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS'
-    }).format(amount)
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
+          <DialogTitle className="flex items-center gap-2">
             <PackageIcon className="h-5 w-5" />
-            <span>Detalle del Pedido #{pedido.id}</span>
+            Pedido #{pedido.id}
           </DialogTitle>
-          <DialogDescription>
-            Información completa del pedido de medicamento
-          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Estado y medicamento */}
+        <div className="space-y-6">
+          {/* Estado y fechas */}
+          <div className="flex items-center justify-between">
+            {getStatusBadge(pedido.estado)}
+            <div className="text-sm text-muted-foreground">
+              Pedido: {formatDate(pedido.fecha_pedido)}
+            </div>
+          </div>
+
+          {/* Información del medicamento */}
           <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{pedido.medicamento_nombre}</CardTitle>
-                {getEstadoBadge(pedido.estado)}
-              </div>
+            <CardHeader>
+              <CardTitle className="text-lg">Medicamento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Cantidad solicitada:</span>
-                <span className="font-medium">{pedido.cantidad_solicitada} unidades</span>
+              <div className="flex justify-between">
+                <span className="font-medium">{pedido.medicamento_nombre}</span>
+                <Badge variant="secondary">{pedido.cantidad_solicitada} unidades</Badge>
               </div>
+              <Separator />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Costo total:</span>
-                <span className="font-medium text-green-600">{formatCurrency(pedido.costo_total)}</span>
+                <div className="flex items-center gap-2">
+                  <DollarSignIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Costo total:</span>
+                </div>
+                <span className="font-medium text-lg">{formatCurrency(pedido.costo_total)}</span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Fechas */}
+          {/* Información del proveedor */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center space-x-2">
-                <CalendarIcon className="h-4 w-4" />
-                <span>Fechas</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground flex items-center space-x-1">
-                  <ClockIcon className="h-3 w-3" />
-                  <span>Fecha de pedido:</span>
-                </span>
-                <span className="text-sm font-medium">{formatDate(pedido.fecha_pedido)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground flex items-center space-x-1">
-                  <CalendarIcon className="h-3 w-3" />
-                  <span>Entrega estimada:</span>
-                </span>
-                <span className="text-sm font-medium">{formatDate(pedido.fecha_estimada_entrega)}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Proveedor */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center space-x-2">
-                <UserIcon className="h-4 w-4" />
-                <span>Proveedor</span>
-              </CardTitle>
+            <CardHeader>
+              <CardTitle className="text-lg">Proveedor</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <p className="font-medium">{pedido.proveedor.nombre}</p>
+                <div className="font-medium">{pedido.proveedor.nombre}</div>
               </div>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <div className="flex items-center space-x-2">
-                  <PhoneIcon className="h-3 w-3" />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <PhoneIcon className="h-4 w-4 text-muted-foreground" />
                   <span>{pedido.proveedor.telefono}</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <MailIcon className="h-3 w-3" />
+                <div className="flex items-center gap-2 text-sm">
+                  <MailIcon className="h-4 w-4 text-muted-foreground" />
                   <span>{pedido.proveedor.email}</span>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Fechas importantes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Cronograma</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Fecha de pedido:</span>
+                </div>
+                <span>{formatDate(pedido.fecha_pedido)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Entrega estimada:</span>
+                </div>
+                <span>{formatDate(pedido.fecha_estimada_entrega)}</span>
               </div>
             </CardContent>
           </Card>
@@ -161,11 +145,8 @@ export default function PedidoDetailModal({ pedido, isOpen, onClose }: PedidoDet
           {/* Observaciones */}
           {pedido.observaciones && (
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center space-x-2">
-                  <AlertCircleIcon className="h-4 w-4" />
-                  <span>Observaciones</span>
-                </CardTitle>
+              <CardHeader>
+                <CardTitle className="text-lg">Observaciones</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">{pedido.observaciones}</p>
@@ -173,24 +154,13 @@ export default function PedidoDetailModal({ pedido, isOpen, onClose }: PedidoDet
             </Card>
           )}
 
-          {/* Botones de acción */}
-          <div className="flex space-x-2 pt-4">
-            <Button 
-              variant="outline" 
-              className="flex-1"
-              onClick={onClose}
-            >
+          {/* Acciones */}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={onClose}>
               Cerrar
             </Button>
-            {pedido.estado === "pendiente" && (
-              <Button 
-                variant="destructive" 
-                className="flex-1"
-                onClick={() => {
-                  // Aquí se podría implementar cancelar pedido
-                  onClose()
-                }}
-              >
+            {pedido.estado === 'pendiente' && (
+              <Button variant="destructive">
                 Cancelar pedido
               </Button>
             )}

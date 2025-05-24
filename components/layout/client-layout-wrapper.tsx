@@ -1,37 +1,57 @@
 'use client'
 
-import React, { useState } from "react"
-import { CustomSidebar } from "@/components/layout/custom-sidebar"
-import { ThemeSwitcher } from "@/components/theme-provider"
-import { cn } from "@/lib/utils"
+import React, { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
+import { CustomSidebar } from '@/src/components/navigation/layout/custom-sidebar'
+import { ThemeSwitcher } from '@/components/theme-provider'
+import { cn } from '@/lib/utils'
+
+const PUBLIC_ROUTES = ['/login', '/olvide-contrasena', '/terminos-y-condiciones']
 
 interface ClientLayoutWrapperProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export function ClientLayoutWrapper({ children }: ClientLayoutWrapperProps) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const toggleMainSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
+  const pathname = usePathname()
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isPublicRoute, setIsPublicRoute] = useState(false)
+
+  useEffect(() => {
+    setIsPublicRoute(PUBLIC_ROUTES.includes(pathname))
+  }, [pathname])
+
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed)
+  }
+
+  // Si es una ruta pública, no mostrar sidebar
+  if (isPublicRoute) {
+    return (
+      <div className="min-h-screen bg-background">
+        {children}
+      </div>
+    )
+  }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <CustomSidebar
-        isCollapsed={isSidebarCollapsed}
-        toggleSidebar={toggleMainSidebar}
-      />
-      <main
-        className={cn(
-          "flex-1 pt-14 md:pt-0 transition-all duration-300 ease-in-out",
-          isSidebarCollapsed ? "md:pl-20" : "md:pl-64"
-        )}
-      >
-        <div className="fixed top-3 right-4 z-50 hidden md:block">
+    <div className="min-h-screen bg-background">
+      <CustomSidebar isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
+      
+      {/* Contenido principal */}
+      <main className={cn(
+        "md:transition-all md:duration-300 md:ease-in-out",
+        isCollapsed ? "md:pl-20" : "md:pl-64"
+      )}>
+        {/* Theme switcher */}
+        <div className="fixed top-4 right-4 z-50">
           <ThemeSwitcher />
         </div>
-        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <div className="container mx-auto p-4 md:p-6">
           {children}
         </div>
       </main>
     </div>
-  );
+  )
 } 

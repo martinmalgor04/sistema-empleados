@@ -1,159 +1,179 @@
 'use client'
 
-import React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import React from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 import { 
   TrendingUpIcon, 
   TrendingDownIcon, 
-  BarChartIcon, 
-  PillIcon,
-  ActivityIcon
+  MinusIcon, 
+  PillIcon, 
+  AlertTriangleIcon,
+  PackageIcon,
+  DollarSignIcon 
 } from "lucide-react"
-import estadisticasData from "@/data/estadisticas-medicamentos.json"
+import { formatCurrency, formatPercentage } from "@/src/utils/formatters"
+
+interface EstadisticaData {
+  medicamento_id: number
+  nombre: string
+  total_dispensado: number
+  promedio_mensual: number
+  variacion_porcentual: number
+  consumo_mensual: Array<{
+    mes: string
+    cantidad: number
+  }>
+  tendencia: 'ascendente' | 'descendente' | 'estable'
+}
 
 interface EstadisticasMedicamentosProps {
+  estadisticas: EstadisticaData[]
   className?: string
 }
 
-export default function EstadisticasMedicamentos({ className }: EstadisticasMedicamentosProps) {
-  const { consumo_mensual_total, tendencias } = estadisticasData
-
-  // Obtener datos del último mes
-  const ultimoMes = consumo_mensual_total[consumo_mensual_total.length - 1]
-  const penultimoMes = consumo_mensual_total[consumo_mensual_total.length - 2]
-
-  // Calcular variación mensual
-  const variacionMensual = ((ultimoMes.total - penultimoMes.total) / penultimoMes.total) * 100
-
-  // Obtener máximo valor para normalizar las barras
-  const maxConsumo = Math.max(...consumo_mensual_total.map(mes => mes.total))
-
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('es-AR').format(num)
+const getTrendIcon = (tendencia: string) => {
+  switch (tendencia) {
+    case 'ascendente':
+      return <TrendingUpIcon className="h-4 w-4 text-green-600" />
+    case 'descendente':
+      return <TrendingDownIcon className="h-4 w-4 text-red-600" />
+    default:
+      return <MinusIcon className="h-4 w-4 text-gray-600" />
   }
+}
+
+const getTrendColor = (tendencia: string) => {
+  switch (tendencia) {
+    case 'ascendente':
+      return 'text-green-600 bg-green-50'
+    case 'descendente':
+      return 'text-red-600 bg-red-50'
+    default:
+      return 'text-gray-600 bg-gray-50'
+  }
+}
+
+export default function EstadisticasMedicamentos({ estadisticas, className }: EstadisticasMedicamentosProps) {
+  // Calcular estadísticas generales
+  const totalMedicamentos = estadisticas.length
+  const totalDispensado = estadisticas.reduce((sum, est) => sum + est.total_dispensado, 0)
+  const promedioGeneral = estadisticas.reduce((sum, est) => sum + est.promedio_mensual, 0) / totalMedicamentos
+  
+  // Medicamentos con mayor variación
+  const mayorVariacion = estadisticas
+    .sort((a, b) => Math.abs(b.variacion_porcentual) - Math.abs(a.variacion_porcentual))
+    .slice(0, 3)
+
+  // Top 5 medicamentos más usados
+  const topMedicamentos = estadisticas
+    .sort((a, b) => b.total_dispensado - a.total_dispensado)
+    .slice(0, 5)
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      {/* Tarjetas de resumen */}
+    <div className={`space-y-6 ${className}`}>
+      {/* Resumen General */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <ActivityIcon className="h-5 w-5 text-blue-500" />
+              <PillIcon className="h-5 w-5 text-primary" />
               <div>
-                <p className="text-sm text-muted-foreground">Total dispensado</p>
-                <p className="text-2xl font-bold">{formatNumber(tendencias.total_medicamentos_dispensados)}</p>
+                <p className="text-sm text-muted-foreground">Total Medicamentos</p>
+                <p className="text-2xl font-bold">{totalMedicamentos}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <BarChartIcon className="h-5 w-5 text-green-500" />
+              <PackageIcon className="h-5 w-5 text-blue-600" />
               <div>
-                <p className="text-sm text-muted-foreground">Promedio mensual</p>
-                <p className="text-2xl font-bold">{formatNumber(tendencias.promedio_mensual)}</p>
+                <p className="text-sm text-muted-foreground">Total Dispensado</p>
+                <p className="text-2xl font-bold">{totalDispensado.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              {variacionMensual >= 0 ? (
-                <TrendingUpIcon className="h-5 w-5 text-green-500" />
-              ) : (
-                <TrendingDownIcon className="h-5 w-5 text-red-500" />
-              )}
+              <DollarSignIcon className="h-5 w-5 text-green-600" />
               <div>
-                <p className="text-sm text-muted-foreground">Variación mensual</p>
-                <p className={`text-2xl font-bold ${variacionMensual >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {variacionMensual >= 0 ? '+' : ''}{variacionMensual.toFixed(1)}%
-                </p>
+                <p className="text-sm text-muted-foreground">Promedio Mensual</p>
+                <p className="text-2xl font-bold">{Math.round(promedioGeneral)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Gráfico de consumo mensual */}
+      {/* Top Medicamentos Más Usados */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <BarChartIcon className="h-5 w-5" />
-            <span>Consumo mensual total</span>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUpIcon className="h-5 w-5" />
+            Medicamentos Más Dispensados
           </CardTitle>
-          <CardDescription>
-            Últimos 5 meses de consumo de medicamentos
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Gráfico de barras */}
-            <div className="flex items-end justify-between h-40 bg-muted/30 rounded p-4">
-              {consumo_mensual_total.map((mes, index) => (
-                <div key={index} className="flex flex-col items-center space-y-2">
-                  <div className="text-sm font-medium text-center">
-                    {formatNumber(mes.total)}
+            {topMedicamentos.map((medicamento, index) => (
+              <div key={medicamento.medicamento_id} className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-medium text-sm">
+                    {index + 1}
                   </div>
-                  <div 
-                    className="bg-primary rounded-t transition-all duration-300 hover:bg-primary/80"
-                    style={{ 
-                      height: `${Math.max((mes.total / maxConsumo) * 120, 8)}px`,
-                      width: '32px',
-                      minHeight: '8px'
-                    }}
-                  />
-                  <div className="text-xs text-muted-foreground text-center">
-                    {mes.mes.slice(0, 3)}
+                  <div>
+                    <p className="font-medium">{medicamento.nombre}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Promedio: {medicamento.promedio_mensual}/mes
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-            
-            {/* Leyenda */}
-            <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-              <div className="w-3 h-3 bg-primary rounded"></div>
-              <span>Unidades dispensadas</span>
-            </div>
+                <div className="text-right">
+                  <p className="font-bold">{medicamento.total_dispensado}</p>
+                  <div className="flex items-center gap-1">
+                    {getTrendIcon(medicamento.tendencia)}
+                    <span className={`text-xs px-2 py-1 rounded ${getTrendColor(medicamento.tendencia)}`}>
+                      {formatPercentage(medicamento.variacion_porcentual)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Top medicamentos del último mes */}
+      {/* Variaciones Significativas */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <TrendingUpIcon className="h-5 w-5" />
-            <span>Medicamentos más dispensados - {ultimoMes.mes}</span>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangleIcon className="h-5 w-5" />
+            Variaciones Significativas
           </CardTitle>
-          <CardDescription>
-            Ranking de medicamentos por cantidad dispensada
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {ultimoMes.medicamentos.map((medicamento, index) => (
-              <div key={medicamento.id} className="flex items-center space-x-3 p-3 rounded-lg border">
-                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary/10 text-sm font-bold">
-                  #{index + 1}
-                </div>
-                <div className="h-8 w-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <PillIcon className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{medicamento.nombre}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatNumber(medicamento.cantidad)} unidades
+            {mayorVariacion.map((medicamento) => (
+              <div key={medicamento.medicamento_id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <p className="font-medium">{medicamento.nombre}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Dispensado: {medicamento.total_dispensado} unidades
                   </p>
                 </div>
-                <div className="text-right">
-                  <Badge variant="outline" className="text-xs">
-                    {((medicamento.cantidad / ultimoMes.total) * 100).toFixed(1)}%
+                <div className="flex items-center gap-2">
+                  {getTrendIcon(medicamento.tendencia)}
+                  <Badge 
+                    variant={Math.abs(medicamento.variacion_porcentual) > 20 ? "destructive" : "secondary"}
+                  >
+                    {medicamento.variacion_porcentual > 0 ? '+' : ''}{formatPercentage(medicamento.variacion_porcentual)}
                   </Badge>
                 </div>
               </div>
@@ -162,40 +182,66 @@ export default function EstadisticasMedicamentos({ className }: EstadisticasMedi
         </CardContent>
       </Card>
 
-      {/* Tendencias destacadas */}
+      {/* Gráfico Simple de Barras de Consumo Mensual */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <ActivityIcon className="h-5 w-5" />
-            <span>Tendencias destacadas</span>
-          </CardTitle>
+          <CardTitle>Consumo por Medicamento</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-              <div className="flex items-center space-x-2">
-                <PillIcon className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">Más utilizado</span>
+        <CardContent>
+          <div className="space-y-4">
+            {estadisticas.slice(0, 6).map((medicamento) => {
+              const maxValue = Math.max(...estadisticas.map(m => m.total_dispensado))
+              const percentage = (medicamento.total_dispensado / maxValue) * 100
+              
+              return (
+                <div key={medicamento.medicamento_id} className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium truncate flex-1">{medicamento.nombre}</span>
+                    <span className="text-muted-foreground ml-2">{medicamento.total_dispensado}</span>
+                  </div>
+                  <Progress value={percentage} className="h-2" />
+                </div>
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Resumen de Tendencias */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Resumen de Tendencias</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="space-y-2">
+              <div className="flex items-center justify-center">
+                <TrendingUpIcon className="h-6 w-6 text-green-600" />
               </div>
-              <p className="text-sm text-blue-700 mt-1">
-                {tendencias.medicamento_mas_usado.nombre}
+              <p className="text-2xl font-bold text-green-600">
+                {estadisticas.filter(e => e.tendencia === 'ascendente').length}
               </p>
-              <p className="text-xs text-blue-600">
-                Crecimiento: +{tendencias.medicamento_mas_usado.crecimiento_porcentual}%
-              </p>
+              <p className="text-sm text-muted-foreground">En aumento</p>
             </div>
             
-            <div className="p-3 rounded-lg bg-green-50 border border-green-200">
-              <div className="flex items-center space-x-2">
-                <TrendingUpIcon className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-900">Mayor crecimiento</span>
+            <div className="space-y-2">
+              <div className="flex items-center justify-center">
+                <MinusIcon className="h-6 w-6 text-gray-600" />
               </div>
-              <p className="text-sm text-green-700 mt-1">
-                {tendencias.mayor_crecimiento.nombre}
+              <p className="text-2xl font-bold text-gray-600">
+                {estadisticas.filter(e => e.tendencia === 'estable').length}
               </p>
-              <p className="text-xs text-green-600">
-                Crecimiento: +{tendencias.mayor_crecimiento.crecimiento_porcentual}%
+              <p className="text-sm text-muted-foreground">Estables</p>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-center">
+                <TrendingDownIcon className="h-6 w-6 text-red-600" />
+              </div>
+              <p className="text-2xl font-bold text-red-600">
+                {estadisticas.filter(e => e.tendencia === 'descendente').length}
               </p>
+              <p className="text-sm text-muted-foreground">En descenso</p>
             </div>
           </div>
         </CardContent>
