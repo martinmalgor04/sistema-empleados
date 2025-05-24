@@ -1,0 +1,157 @@
+{
+  "historial_compras": [
+    {
+      "id": 1,
+      "fecha": "2024-01-15",
+      "hora": "10:30",
+      "local_vendedor": "Supermercado Central",
+      "area": "Cocina",
+      "categoria_predominante": "Lácteos",
+      "productos": [
+        {
+          "nombre": "Queso rallado",
+          "categoria": "Lácteos",
+          "cantidad_comprada": 400,
+          "unidad": "grs",
+          "precio_unitario": 5.87,
+          "subtotal": 2348.00
+        },
+        {
+          "nombre": "Leche entera",
+          "categoria": "Lácteos", 
+          "cantidad_comprada": 6,
+          "unidad": "litros",
+          "precio_unitario": 890.50,
+          "subtotal": 5343.00
+        }
+      ],
+      "total": 7691.00,
+      "estado": "recibida",
+      "comprobante": "factura_001.pdf"
+    },
+    {
+      "id": 2,
+      "fecha": "2024-01-12",
+      "hora": "09:15",
+      "local_vendedor": "Farmacia San Martín",
+      "area": "Enfermería",
+      "categoria_predominante": "Medicamentos",
+      "productos": [
+        {
+          "nombre": "Paracetamol",
+          "categoria": "Medicamentos",
+          "cantidad_comprada": 50,
+          "unidad": "uds",
+          "precio_unitario": 150.50,
+          "subtotal": 7525.00
+        },
+        {
+          "nombre": "Ibuprofeno 400mg",
+          "categoria": "Medicamentos",
+          "cantidad_comprada": 30,
+          "unidad": "uds",
+          "precio_unitario": 280.75,
+          "subtotal": 8422.50
+        }
+      ],
+      "total": 15947.50,
+      "estado": "recibida",
+      "comprobante": "factura_002.pdf"
+    },
+    {
+      "id": 3,
+      "fecha": "2024-01-08",
+      "hora": "14:45",
+      "local_vendedor": "Distribuidora de Limpieza",
+      "area": "Limpieza",
+      "categoria_predominante": "Limpieza",
+      "productos": [
+        {
+          "nombre": "Lavandina",
+          "categoria": "Limpieza",
+          "cantidad_comprada": 5,
+          "unidad": "litros",
+          "precio_unitario": 850.00,
+          "subtotal": 4250.00
+        },
+        {
+          "nombre": "Detergente",
+          "categoria": "Limpieza",
+          "cantidad_comprada": 8,
+          "unidad": "litros",
+          "precio_unitario": 1200.00,
+          "subtotal": 9600.00
+        }
+      ],
+      "total": 13850.00,
+      "estado": "recibida",
+      "comprobante": "factura_003.pdf"
+    }
+  ],
+  "necesidades": [
+    {
+      "id": 1,
+      "producto": "Paracetamol",
+      "cantidad_solicitada": 50,
+      "unidad": "uds",
+      "categoria": "Medicamentos",
+      "area": "Enfermería",
+      "prioridad": "alta",
+      "estado": "faltante",
+      "fecha_solicitud": "2024-01-15"
+    },
+    {
+      "id": 2,
+      "producto": "Queso rallado",
+      "cantidad_solicitada": 500,
+      "unidad": "grs",
+      "categoria": "Lácteos",
+      "area": "Cocina",
+      "prioridad": "baja",
+      "estado": "faltante",
+      "fecha_solicitud": "2024-01-14"
+    },
+    {
+      "id": 3,
+      "producto": "Lavandina",
+      "cantidad_solicitada": 3,
+      "unidad": "litros",
+      "categoria": "Limpieza",
+      "area": "Limpieza",
+      "prioridad": "media",
+      "estado": "pendiente",
+      "fecha_solicitud": "2024-01-13"
+    },
+    {
+      "id": 4,
+      "producto": "Arroz integral",
+      "cantidad_solicitada": 10,
+      "unidad": "kg",
+      "categoria": "Alimentos",
+      "area": "Cocina",
+      "prioridad": "baja",
+      "estado": "faltante",
+      "fecha_solicitud": "2024-01-12"
+    }
+  ],
+  "resumen_areas": [
+    {
+      "area": "Enfermería",
+      "productos_principales": ["Medicamentos", "Material médico"],
+      "ultima_compra": "2024-01-12",
+      "gasto_mensual": 45000.00
+    },
+    {
+      "area": "Cocina", 
+      "productos_principales": ["Alimentos", "Lácteos"],
+      "ultima_compra": "2024-01-15",
+      "gasto_mensual": 120000.00
+    },
+    {
+      "area": "Limpieza",
+      "productos_principales": ["Productos de limpieza"],
+      "ultima_compra": "2024-01-08", 
+      "gasto_mensual": 35000.00
+    }
+  ]
+} 

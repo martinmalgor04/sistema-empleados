@@ -1,0 +1,36 @@
+[
+  {
+    "id": 1,
+    "medicamento_id": 4,
+    "medicamento_nombre": "Loratadina 10mg",
+    "cantidad_solicitada": 50,
+    "fecha_pedido": "2024-01-15",
+    "fecha_estimada_entrega": "2024-01-22",
+    "estado": "pendiente",
+    "proveedor": {
+      "id": 1,
+      "nombre": "Farmacéutica San Juan",
+      "telefono": "9999999999",
+      "email": "contacto@farmasanjuan.com"
+    },
+    "costo_total": 9012.50,
+    "observaciones": "Pedido urgente por stock bajo"
+  },
+  {
+    "id": 2,
+    "medicamento_id": 2,
+    "medicamento_nombre": "Ibuprofeno 400mg",
+    "cantidad_solicitada": 100,
+    "fecha_pedido": "2024-01-10",
+    "fecha_estimada_entrega": "2024-01-17",
+    "estado": "en_transito",
+    "proveedor": {
+      "id": 1,
+      "nombre": "Farmacéutica San Juan",
+      "telefono": "9999999999",
+      "email": "contacto@farmasanjuan.com"
+    },
+    "costo_total": 28075.00,
+    "observaciones": "Reposición de stock agotado"
+  }
+] 

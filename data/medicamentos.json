@@ -1,0 +1,148 @@
+[
+  {
+    "id": 1,
+    "nombre": "Paracetamol 500mg",
+    "descripcion": "Analgésico y antipirético",
+    "cantidad": 45,
+    "stock_minimo": 20,
+    "costo": 150.50,
+    "estado": "stock",
+    "imagen": "/medicamento-placeholder.png",
+    "proveedor_principal": {
+      "id": 1,
+      "nombre": "Farmacéutica San Juan",
+      "telefono": "9999999999",
+      "email": "contacto@farmasanjuan.com"
+    },
+    "proveedores": [
+      {
+        "id": 1,
+        "nombre": "Farmacéutica San Juan",
+        "telefono": "9999999999",
+        "email": "contacto@farmasanjuan.com"
+      },
+      {
+        "id": 2,
+        "nombre": "Distribuidora Med Plus",
+        "telefono": "8888888888",
+        "email": "ventas@medplus.com"
+      }
+    ],
+    "uso_mensual": [163, 234, 167, 289, 198],
+    "uso_semanal": [163, 234, 167, 259, 364, 70, 10],
+    "prospecto": "Paracetamol 500 mg (analgésico y antipirético).\nProspecto: Información para el paciente\nParacetamol 500 mg comprimidos\nLea todo el prospecto detenidamente antes de empezar a tomar este medicamento.\n1. Conserve este prospecto, ya que puede tener que volver a leerlo.\n2. Si tiene alguna duda, consulte a su médico o farmacéutico.\n3. Este medicamento se le ha recetado a usted y no debe darlo a otras personas.\n4. Si experimenta efectos adversos, consulte a su médico o farmacéutico.\n\n1. Qué es Paracetamol y para qué se utiliza\nParacetamol pertenece a un grupo de medicamentos llamados analgésicos (calma el dolor) y antipiréticos (reduce la fiebre).\nSe utiliza para:\n1. Aliviar dolores leves a moderados como dolor de cabeza, dolor dental, dolor muscular.",
+    "frecuencia_uso": 289
+  },
+  {
+    "id": 2,
+    "nombre": "Ibuprofeno 400mg",
+    "descripcion": "Antiinflamatorio no esteroideo",
+    "cantidad": 0,
+    "stock_minimo": 15,
+    "costo": 280.75,
+    "estado": "faltante",
+    "imagen": "/medicamento-placeholder.png",
+    "proveedor_principal": {
+      "id": 1,
+      "nombre": "Farmacéutica San Juan",
+      "telefono": "9999999999",
+      "email": "contacto@farmasanjuan.com"
+    },
+    "proveedores": [
+      {
+        "id": 1,
+        "nombre": "Farmacéutica San Juan",
+        "telefono": "9999999999",
+        "email": "contacto@farmasanjuan.com"
+      }
+    ],
+    "uso_mensual": [120, 156, 134, 198, 145],
+    "uso_semanal": [45, 67, 34, 89, 123, 34, 8],
+    "prospecto": "Ibuprofeno 400mg - Antiinflamatorio no esteroideo (AINE).",
+    "frecuencia_uso": 198
+  },
+  {
+    "id": 3,
+    "nombre": "Omeprazol 20mg",
+    "descripcion": "Inhibidor de la bomba de protones",
+    "cantidad": 30,
+    "stock_minimo": 25,
+    "costo": 320.00,
+    "estado": "stock",
+    "imagen": "/medicamento-placeholder.png",
+    "proveedor_principal": {
+      "id": 2,
+      "nombre": "Distribuidora Med Plus",
+      "telefono": "8888888888",
+      "email": "ventas@medplus.com"
+    },
+    "proveedores": [
+      {
+        "id": 2,
+        "nombre": "Distribuidora Med Plus",
+        "telefono": "8888888888",
+        "email": "ventas@medplus.com"
+      }
+    ],
+    "uso_mensual": [89, 112, 98, 145, 134],
+    "uso_semanal": [23, 45, 67, 34, 56, 12, 5],
+    "prospecto": "Omeprazol 20mg - Inhibidor de la bomba de protones para el tratamiento de úlceras y reflujo gastroesofágico.",
+    "frecuencia_uso": 145
+  },
+  {
+    "id": 4,
+    "nombre": "Loratadina 10mg",
+    "descripcion": "Antihistamínico",
+    "cantidad": 5,
+    "stock_minimo": 20,
+    "costo": 180.25,
+    "estado": "pedido",
+    "imagen": "/medicamento-placeholder.png",
+    "proveedor_principal": {
+      "id": 1,
+      "nombre": "Farmacéutica San Juan",
+      "telefono": "9999999999",
+      "email": "contacto@farmasanjuan.com"
+    },
+    "proveedores": [
+      {
+        "id": 1,
+        "nombre": "Farmacéutica San Juan",
+        "telefono": "9999999999",
+        "email": "contacto@farmasanjuan.com"
+      }
+    ],
+    "uso_mensual": [67, 89, 76, 123, 98],
+    "uso_semanal": [12, 23, 45, 67, 34, 8, 3],
+    "prospecto": "Loratadina 10mg - Antihistamínico para el tratamiento de alergias.",
+    "frecuencia_uso": 123
+  },
+  {
+    "id": 5,
+    "nombre": "Atorvastatina 20mg",
+    "descripcion": "Estatina para el colesterol",
+    "cantidad": 60,
+    "stock_minimo": 30,
+    "costo": 450.00,
+    "estado": "stock",
+    "imagen": "/medicamento-placeholder.png",
+    "proveedor_principal": {
+      "id": 3,
+      "nombre": "Pharma Distributors",
+      "telefono": "7777777777",
+      "email": "info@pharmadist.com"
+    },
+    "proveedores": [
+      {
+        "id": 3,
+        "nombre": "Pharma Distributors",
+        "telefono": "7777777777",
+        "email": "info@pharmadist.com"
+      }
+    ],
+    "uso_mensual": [34, 45, 56, 67, 78],
+    "uso_semanal": [8, 12, 15, 20, 25, 6, 2],
+    "prospecto": "Atorvastatina 20mg - Estatina para el control del colesterol.",
+    "frecuencia_uso": 78
+  }
+] 

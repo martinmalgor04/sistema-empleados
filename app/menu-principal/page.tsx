@@ -44,7 +44,7 @@ export default function MenuPrincipalPage() {
           <Button onClick={() => router.push("/registro-asistencia")} className="w-full" size="lg">
             Registro de Asistencia
           </Button>
-          <Button onClick={() => router.push("/menu-compras")} className="w-full" size="lg" variant="outline">
+          <Button onClick={() => router.push("/compras")} className="w-full" size="lg" variant="outline">
             Menú de Compras
           </Button>
           <Button onClick={() => router.push("/menu-medicamentos")} className="w-full" size="lg" variant="outline">

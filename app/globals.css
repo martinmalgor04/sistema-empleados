@@ -10,6 +10,39 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  
+  /* Ocultar scrollbar horizontal para el carousel */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+  }
+  
+  /* Clase para truncar texto a 2 líneas */
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  /* Estilos para gráficos de barras */
+  .chart-bar {
+    transition: all 0.2s ease-in-out;
+    display: block;
+    position: relative;
+  }
+  
+  .chart-bar:hover {
+    transform: scale(1.05);
+  }
+  
+  .chart-container {
+    min-height: 120px;
+    position: relative;
+  }
 }
 
 @layer base {

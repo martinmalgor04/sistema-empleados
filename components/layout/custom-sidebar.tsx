@@ -17,7 +17,7 @@ const baseNavItems = [
   { href: "/menu-principal", label: "Inicio", icon: HomeIcon, roles: ["supervisor", "enfermero"] },
   { href: "/empleados", label: "Empleados", icon: UserCogIcon, roles: ["supervisor"] },
   { href: "/registro-asistencia", label: "Reg. Asistencia", icon: UserPlusIcon, roles: ["supervisor", "enfermero"] },
-  { href: "/menu-compras", label: "Compras", icon: ShoppingCartIcon, roles: ["supervisor"] }, // Solo supervisor por ahora
+  { href: "/compras", label: "Compras", icon: ShoppingCartIcon, roles: ["supervisor"] }, // Solo supervisor por ahora
   { href: "/menu-medicamentos", label: "Medicamentos", icon: PillIcon, roles: ["supervisor", "enfermero"] },
 ]
 

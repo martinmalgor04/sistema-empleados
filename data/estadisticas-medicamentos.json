@@ -1,0 +1,73 @@
+{
+  "consumo_mensual_total": [
+    {
+      "mes": "Septiembre",
+      "total": 1543,
+      "medicamentos": [
+        { "id": 1, "nombre": "Paracetamol 500mg", "cantidad": 289 },
+        { "id": 2, "nombre": "Ibuprofeno 400mg", "cantidad": 198 },
+        { "id": 3, "nombre": "Omeprazol 20mg", "cantidad": 145 },
+        { "id": 4, "nombre": "Loratadina 10mg", "cantidad": 123 },
+        { "id": 5, "nombre": "Atorvastatina 20mg", "cantidad": 78 }
+      ]
+    },
+    {
+      "mes": "Octubre",
+      "total": 1687,
+      "medicamentos": [
+        { "id": 1, "nombre": "Paracetamol 500mg", "cantidad": 320 },
+        { "id": 2, "nombre": "Ibuprofeno 400mg", "cantidad": 215 },
+        { "id": 3, "nombre": "Omeprazol 20mg", "cantidad": 167 },
+        { "id": 4, "nombre": "Loratadina 10mg", "cantidad": 134 },
+        { "id": 5, "nombre": "Atorvastatina 20mg", "cantidad": 89 }
+      ]
+    },
+    {
+      "mes": "Noviembre",
+      "total": 1421,
+      "medicamentos": [
+        { "id": 1, "nombre": "Paracetamol 500mg", "cantidad": 267 },
+        { "id": 2, "nombre": "Ibuprofeno 400mg", "cantidad": 189 },
+        { "id": 3, "nombre": "Omeprazol 20mg", "cantidad": 156 },
+        { "id": 4, "nombre": "Loratadina 10mg", "cantidad": 112 },
+        { "id": 5, "nombre": "Atorvastatina 20mg", "cantidad": 95 }
+      ]
+    },
+    {
+      "mes": "Diciembre",
+      "total": 1889,
+      "medicamentos": [
+        { "id": 1, "nombre": "Paracetamol 500mg", "cantidad": 378 },
+        { "id": 2, "nombre": "Ibuprofeno 400mg", "cantidad": 245 },
+        { "id": 3, "nombre": "Omeprazol 20mg", "cantidad": 198 },
+        { "id": 4, "nombre": "Loratadina 10mg", "cantidad": 154 },
+        { "id": 5, "nombre": "Atorvastatina 20mg", "cantidad": 123 }
+      ]
+    },
+    {
+      "mes": "Enero",
+      "total": 1645,
+      "medicamentos": [
+        { "id": 1, "nombre": "Paracetamol 500mg", "cantidad": 312 },
+        { "id": 2, "nombre": "Ibuprofeno 400mg", "cantidad": 201 },
+        { "id": 3, "nombre": "Omeprazol 20mg", "cantidad": 178 },
+        { "id": 4, "nombre": "Loratadina 10mg", "cantidad": 143 },
+        { "id": 5, "nombre": "Atorvastatina 20mg", "cantidad": 107 }
+      ]
+    }
+  ],
+  "tendencias": {
+    "medicamento_mas_usado": {
+      "id": 1,
+      "nombre": "Paracetamol 500mg",
+      "crecimiento_porcentual": 8.5
+    },
+    "mayor_crecimiento": {
+      "id": 5,
+      "nombre": "Atorvastatina 20mg",
+      "crecimiento_porcentual": 37.2
+    },
+    "total_medicamentos_dispensados": 8185,
+    "promedio_mensual": 1637
+  }
+} 
