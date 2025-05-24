@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -64,13 +64,16 @@ const presentismoData = [
   { semana: "29/04/2024 - 05/05/2024", diasTrabajados: 5, ausencias: 2, presentismo: 60 },
 ]
 
-export default function EmpleadoPage({ params }: { params: { id: string } }) {
-  const [empleado, setEmpleado] = useState(empleadosData.find(e => e.id === params.id))
+export default function EmpleadoPage({ params }: { params: Promise<{ id: string }> }) {
+  // Unwrap params usando React.use() para Next.js 15
+  const unwrappedParams = React.use(params)
+  
+  const [empleado, setEmpleado] = useState(empleadosData.find(e => e.id === unwrappedParams.id))
   
   useEffect(() => {
-    const empleadoEncontrado = empleadosData.find(e => e.id === params.id)
+    const empleadoEncontrado = empleadosData.find(e => e.id === unwrappedParams.id)
     setEmpleado(empleadoEncontrado)
-  }, [params.id])
+  }, [unwrappedParams.id])
 
   if (!empleado) {
     return (
