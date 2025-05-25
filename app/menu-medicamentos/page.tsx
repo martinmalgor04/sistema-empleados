@@ -7,10 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SearchIcon, PlusIcon, PillIcon, TrendingUpIcon, EditIcon, TrashIcon, ChevronRightIcon, PackageIcon } from "lucide-react"
+import { SearchIcon, PlusIcon, PillIcon, TrendingUpIcon, EditIcon, TrashIcon, ChevronRightIcon, PackageIcon, AlertTriangleIcon } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import medicamentosData from "@/data/medicamentos.json"
 import pedidosData from "@/data/pedidos.json"
+import estadisticasData from "@/data/estadisticas-medicamentos.json"
 import PedidoDetailModal from "@/components/pedido-detail-modal"
 import EstadisticasMedicamentos from "@/components/estadisticas-medicamentos"
 
@@ -50,6 +51,19 @@ interface Pedido {
   observaciones: string
 }
 
+interface EstadisticaData {
+  medicamento_id: number
+  nombre: string
+  total_dispensado: number
+  promedio_mensual: number
+  variacion_porcentual: number
+  consumo_mensual: Array<{
+    mes: string
+    cantidad: number
+  }>
+  tendencia: 'ascendente' | 'descendente' | 'estable'
+}
+
 export default function MenuMedicamentosPage() {
   const router = useRouter()
   const { toast } = useToast()
@@ -59,6 +73,36 @@ export default function MenuMedicamentosPage() {
   const [activeTab, setActiveTab] = useState("stock")
   const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null)
   const [showPedidoModal, setShowPedidoModal] = useState(false)
+
+  // Transformar datos de estadísticas
+  const estadisticasTransformadas: EstadisticaData[] = medicamentos.map(medicamento => {
+    const consumoMensual = estadisticasData.consumo_mensual_total.map(mes => ({
+      mes: mes.mes,
+      cantidad: mes.medicamentos.find(m => m.id === medicamento.id)?.cantidad || 0
+    }))
+    
+    const totalDispensado = consumoMensual.reduce((sum, mes) => sum + mes.cantidad, 0)
+    const promedioMensual = totalDispensado / consumoMensual.length
+    
+    // Calcular tendencia simple
+    const ultimosMeses = consumoMensual.slice(-2)
+    const variacion = ultimosMeses.length === 2 ? 
+      ((ultimosMeses[1].cantidad - ultimosMeses[0].cantidad) / ultimosMeses[0].cantidad) * 100 : 0
+    
+    let tendencia: 'ascendente' | 'descendente' | 'estable' = 'estable'
+    if (variacion > 5) tendencia = 'ascendente'
+    else if (variacion < -5) tendencia = 'descendente'
+    
+    return {
+      medicamento_id: medicamento.id,
+      nombre: medicamento.nombre,
+      total_dispensado: totalDispensado,
+      promedio_mensual: Math.round(promedioMensual),
+      variacion_porcentual: Number(variacion.toFixed(1)),
+      consumo_mensual: consumoMensual,
+      tendencia: tendencia
+    }
+  })
 
   // Obtener medicamentos más frecuentes (ordenados por frecuencia_uso)
   const medicamentosFrecuentes = [...medicamentos]
@@ -118,7 +162,26 @@ export default function MenuMedicamentosPage() {
   }
 
   const handleMedicamentoClick = (id: number) => {
-    router.push(`/menu-medicamentos/${id}`)
+    try {
+      // Validar que el ID sea válido antes de navegar
+      if (!id || typeof id !== 'number') {
+        console.error('ID de medicamento inválido:', id)
+        toast({
+          title: "Error",
+          description: "ID de medicamento inválido",
+          variant: "destructive"
+        })
+        return
+      }
+      router.push(`/menu-medicamentos/${id}`)
+    } catch (error) {
+      console.error('Error al navegar al medicamento:', error)
+      toast({
+        title: "Error de navegación",
+        description: "No se pudo cargar la página del medicamento",
+        variant: "destructive"
+      })
+    }
   }
 
   const handleVerPedido = (pedido: Pedido) => {
@@ -155,6 +218,57 @@ export default function MenuMedicamentosPage() {
     })
   }
 
+  const handleVerRanking = () => {
+    try {
+      router.push("/menu-medicamentos/ranking")
+    } catch (error) {
+      console.error('Error al navegar al ranking:', error)
+      toast({
+        title: "Error de navegación",
+        description: "No se pudo cargar la página de ranking",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const [error, setError] = useState<string | null>(null)
+
+  // Manejo de errores del componente
+  useEffect(() => {
+    try {
+      // Validar que los datos necesarios estén disponibles
+      if (!medicamentosData || !Array.isArray(medicamentosData)) {
+        throw new Error('Datos de medicamentos no válidos')
+      }
+      if (!estadisticasData) {
+        throw new Error('Datos de estadísticas no válidos')
+      }
+    } catch (err) {
+      console.error('Error al inicializar datos:', err)
+      setError(err instanceof Error ? err.message : 'Error desconocido')
+      toast({
+        title: "Error al cargar datos",
+        description: "Hubo un problema al cargar la información de medicamentos",
+        variant: "destructive"
+      })
+    }
+  }, [toast])
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-4">
+        <div className="text-center py-12">
+          <AlertTriangleIcon className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h3 className="text-lg font-medium mb-2">Error al cargar medicamentos</h3>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Recargar página
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto p-4 space-y-6">
       {/* Header */}
@@ -179,7 +293,7 @@ export default function MenuMedicamentosPage() {
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => router.push("/menu-medicamentos/ranking")}
+            onClick={handleVerRanking}
             className="text-primary hover:text-primary/80"
           >
             Ver todo
@@ -190,36 +304,57 @@ export default function MenuMedicamentosPage() {
         {/* Carousel horizontal de medicamentos frecuentes */}
         <div className="relative">
           <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
-            {medicamentosFrecuentes.map((medicamento) => (
-              <Card 
-                key={`frequent-${medicamento.id}`}
-                className="flex-shrink-0 w-48 cursor-pointer hover:shadow-md transition-shadow border-primary/20"
-                onClick={() => handleMedicamentoClick(medicamento.id)}
-              >
-                <CardContent className="p-3">
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div className="h-8 w-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <PillIcon className="h-4 w-4 text-primary" />
+            {medicamentosFrecuentes && medicamentosFrecuentes.length > 0 ? (
+              medicamentosFrecuentes.map((medicamento) => {
+                // Validaciones defensivas
+                if (!medicamento || !medicamento.id || !medicamento.nombre) {
+                  console.warn('Medicamento inválido encontrado:', medicamento)
+                  return null
+                }
+                
+                return (
+                  <Card 
+                    key={`frequent-${medicamento.id}`}
+                    className="flex-shrink-0 w-48 cursor-pointer hover:shadow-md transition-shadow border-primary/20"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleMedicamentoClick(medicamento.id)
+                    }}
+                  >
+                    <CardContent className="p-3">
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between">
+                          <div className="h-8 w-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <PillIcon className="h-4 w-4 text-primary" />
+                          </div>
+                          {getCompactStatusBadge(medicamento)}
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-sm line-clamp-2 leading-tight">
+                            {medicamento.nombre || 'Medicamento sin nombre'}
+                          </h3>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {medicamento.cantidad || 0} unidades
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Uso:</span>
+                          <span className="font-medium text-primary">{medicamento.frecuencia_uso || 0}</span>
+                        </div>
                       </div>
-                      {getCompactStatusBadge(medicamento)}
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-sm line-clamp-2 leading-tight">
-                        {medicamento.nombre}
-                      </h3>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {medicamento.cantidad} unidades
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Uso:</span>
-                      <span className="font-medium text-primary">{medicamento.frecuencia_uso}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </CardContent>
+                  </Card>
+                )
+              })
+            ) : (
+              <div className="flex items-center justify-center w-full py-8">
+                <div className="text-center">
+                  <PillIcon className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No hay medicamentos frecuentes disponibles</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -248,12 +383,12 @@ export default function MenuMedicamentosPage() {
         <TabsContent value="frecuentes" className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Estadísticas y análisis</h2>
-            <Button variant="outline" onClick={() => router.push("/menu-medicamentos/ranking")}>
+            <Button variant="outline" onClick={handleVerRanking}>
               <TrendingUpIcon className="h-4 w-4 mr-2" />
               Ver ranking completo
             </Button>
           </div>
-          <EstadisticasMedicamentos />
+          <EstadisticasMedicamentos estadisticas={estadisticasTransformadas} />
         </TabsContent>
 
         {/* Contenido de En stock */}
