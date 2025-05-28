@@ -529,32 +529,8 @@ export default function PerfilPage() {
                       Actualiza tu contraseña regularmente para mantener tu cuenta segura
                     </p>
                   </div>
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={() => router.push("/cambiar-contrasena")}>
                     Cambiar
-                  </Button>
-                </div>
-                
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <Label>Actividad de la cuenta</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Revisa los inicios de sesión recientes y la actividad de tu cuenta
-                    </p>
-                  </div>
-                  <Button variant="outline">
-                    Ver actividad
-                  </Button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <Label>Descargar datos</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Descarga una copia de todos tus datos almacenados
-                    </p>
-                  </div>
-                  <Button variant="outline">
-                    Descargar
                   </Button>
                 </div>
               </div>
