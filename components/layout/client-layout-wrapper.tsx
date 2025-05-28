@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { CustomSidebar } from '@/src/components/navigation/layout/custom-sidebar'
-import { ThemeSwitcher } from '@/components/theme-provider'
 import { cn } from '@/lib/utils'
 
 const PUBLIC_ROUTES = ['/login', '/olvide-contrasena', '/terminos-y-condiciones']
@@ -43,10 +42,7 @@ export function ClientLayoutWrapper({ children }: ClientLayoutWrapperProps) {
         "md:transition-all md:duration-300 md:ease-in-out",
         isCollapsed ? "md:pl-20" : "md:pl-64"
       )}>
-        {/* Theme switcher */}
-        <div className="fixed top-4 right-4 z-50">
-          <ThemeSwitcher />
-        </div>
+
         
         <div className="container mx-auto p-4 md:p-6">
           {children}
