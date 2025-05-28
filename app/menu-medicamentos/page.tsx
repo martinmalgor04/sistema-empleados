@@ -277,10 +277,6 @@ export default function MenuMedicamentosPage() {
           <h1 className="text-3xl font-bold">Medicamentos</h1>
           <p className="text-muted-foreground">Gestión de inventario y control de stock</p>
         </div>
-        <Button onClick={() => router.push("/menu-medicamentos/agregar")} className="w-full md:w-auto">
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Añadir medicamento
-        </Button>
       </div>
 
       {/* Sección Más Frecuentes - Fija en la parte superior */}
@@ -421,12 +417,6 @@ export default function MenuMedicamentosPage() {
                       </div>
                       <div className="flex items-center space-x-2">
                         {getStatusBadge(medicamento)}
-                        <Button variant="ghost" size="sm">
-                          <EditIcon className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-destructive">
-                          <TrashIcon className="h-4 w-4" />
-                        </Button>
                       </div>
                     </div>
                   </CardContent>
