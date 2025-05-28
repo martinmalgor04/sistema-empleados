@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   ArrowLeftIcon, 
   ShareIcon, 
-  EditIcon, 
   TrashIcon, 
   PillIcon, 
   CameraIcon,
@@ -165,9 +164,6 @@ export default function MedicamentoDetallePage() {
         <div className="flex items-center space-x-2">
           <Button variant="ghost" size="sm">
             <ShareIcon className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm">
-            <EditIcon className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="sm" className="text-destructive">
             <TrashIcon className="h-4 w-4" />
@@ -374,9 +370,6 @@ export default function MedicamentoDetallePage() {
                 <div className="space-y-3">
                   <Button variant="outline" className="w-full">
                     Importar prospecto
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    Editar
                   </Button>
                   <Dialog>
                     <DialogTrigger asChild>
