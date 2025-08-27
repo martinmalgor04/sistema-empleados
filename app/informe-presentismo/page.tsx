@@ -7,10 +7,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Download, Search, Filter, Calendar } from "lucide-react"
+import { ArrowLeft, Download, Search, Filter, Calendar, CalendarDays } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { format, subDays, subWeeks, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns"
+import { es } from "date-fns/locale"
 
 // Datos de ejemplo para el prototipo
 const informeData = [
@@ -23,12 +26,28 @@ const informeData = [
   { empleado: "Javier Gómez", cargo: "Cuidador", diasTrabajados: 5, ausencias: 0, presentismo: 100 },
 ]
 
+interface DateRange {
+  from: Date | undefined
+  to: Date | undefined
+}
+
+interface DatePreset {
+  label: string
+  range: DateRange
+}
+
 export default function InformePresentismoPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [showFilter, setShowFilter] = useState(false)
   const [filteredData, setFilteredData] = useState(informeData)
   const [filtroActivo, setFiltroActivo] = useState("todos")
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("semanal")
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: subDays(new Date(), 7),
+    to: new Date()
+  })
+  const [showStartCalendar, setShowStartCalendar] = useState(false)
+  const [showEndCalendar, setShowEndCalendar] = useState(false)
 
   // Función para filtrar los datos según la búsqueda
   const handleSearch = (e) => {
@@ -61,6 +80,55 @@ export default function InformePresentismoPage() {
   const resetFilters = () => {
     setFilteredData(informeData)
     setShowFilter(false)
+  }
+
+  // Date range presets
+  const datePresets: DatePreset[] = [
+    {
+      label: "Últimos 7 días",
+      range: {
+        from: subDays(new Date(), 7),
+        to: new Date()
+      }
+    },
+    {
+      label: "Últimos 15 días",
+      range: {
+        from: subDays(new Date(), 15),
+        to: new Date()
+      }
+    },
+    {
+      label: "Últimos 30 días",
+      range: {
+        from: subDays(new Date(), 30),
+        to: new Date()
+      }
+    },
+    {
+      label: "Esta semana",
+      range: {
+        from: startOfWeek(new Date(), { weekStartsOn: 1 }),
+        to: endOfWeek(new Date(), { weekStartsOn: 1 })
+      }
+    },
+    {
+      label: "Este mes",
+      range: {
+        from: startOfMonth(new Date()),
+        to: endOfMonth(new Date())
+      }
+    }
+  ]
+
+  const formatDateRange = () => {
+    if (!dateRange.from) return "Seleccionar fechas"
+    if (!dateRange.to) return format(dateRange.from, "dd/MM/yyyy", { locale: es })
+    return `${format(dateRange.from, "dd/MM/yyyy", { locale: es })} - ${format(dateRange.to, "dd/MM/yyyy", { locale: es })}`
+  }
+
+  const applyDatePreset = (preset: DatePreset) => {
+    setDateRange(preset.range)
   }
 
   return (
@@ -222,24 +290,57 @@ export default function InformePresentismoPage() {
             </div>
           </div>
 
-          {/* Selector de fechas mejorado con campos del mismo tamaño */}
-          <div className="flex flex-wrap items-center gap-4 mb-6">
-            <div className="flex-1 flex items-center gap-4">
-              <div className="relative flex-1">
-                <Input type="text" defaultValue="01/04/2024" className="pr-10" />
-                <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
+          {/* Selector de fechas mejorado */}
+          <div className="space-y-4 mb-6">
+            {/* Date Range Selector */}
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex-1">
+                <Label className="text-sm font-medium mb-2 block">Rango de fechas</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <CalendarDays className="mr-2 h-4 w-4" />
+                      {formatDateRange()}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <div className="flex">
+                      {/* Date Presets */}
+                      <div className="border-r p-3 space-y-2">
+                        <h4 className="font-medium text-sm mb-2">Períodos</h4>
+                        {datePresets.map((preset, index) => (
+                          <Button
+                            key={index}
+                            variant="ghost"
+                            className="w-full justify-start text-sm"
+                            onClick={() => applyDatePreset(preset)}
+                          >
+                            {preset.label}
+                          </Button>
+                        ))}
+                      </div>
+                      {/* Calendar */}
+                      <div className="p-3">
+                        <CalendarComponent
+                          mode="range"
+                          defaultMonth={dateRange?.from}
+                          selected={dateRange}
+                          onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
+                          numberOfMonths={2}
+                          locale={es}
+                        />
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
-              <span className="text-gray-500 whitespace-nowrap">hasta</span>
-              <div className="relative flex-1">
-                <Input type="text" defaultValue="07/04/2024" className="pr-10" />
-                <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
+              <div className="md:w-auto w-full">
+                <Label className="text-sm font-medium mb-2 block invisible">Acciones</Label>
+                <Button variant="outline" className="w-full flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Descargar
+                </Button>
               </div>
-            </div>
-            <div className="md:w-auto w-full">
-              <Button variant="outline" className="w-full flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Descargar
-              </Button>
             </div>
           </div>
 

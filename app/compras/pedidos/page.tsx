@@ -1,23 +1,40 @@
 'use client'
 
-import React from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 import { 
   ArrowLeftIcon, 
   ClockIcon,
   AlertCircleIcon,
   TruckIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  DollarSignIcon,
+  CreditCardIcon,
+  FileTextIcon
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import pedidosData from "@/data/pedidos.json"
 
+interface UpdateStatusData {
+  newStatus: string
+  paymentStatus?: string
+  observations?: string
+  receivedQuantity?: number
+}
+
 export default function PedidosPendientesPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const [selectedPedido, setSelectedPedido] = useState<any>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [updateData, setUpdateData] = useState<UpdateStatusData>({ newStatus: "" })
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-AR', {
@@ -44,8 +61,23 @@ export default function PedidosPendientesPage() {
         return <Badge variant="default" className="text-xs">Recibido</Badge>
       case "cancelado":
         return <Badge variant="destructive" className="text-xs">Cancelado</Badge>
+      case "parcial":
+        return <Badge variant="outline" className="text-xs border-purple-500 text-purple-700">Parcial</Badge>
       default:
         return <Badge variant="outline" className="text-xs">{estado}</Badge>
+    }
+  }
+
+  const getPaymentStatusBadge = (status: string) => {
+    switch (status) {
+      case "pendiente":
+        return <Badge variant="outline" className="text-xs border-yellow-500 text-yellow-700">Pago Pendiente</Badge>
+      case "pagado":
+        return <Badge variant="default" className="text-xs bg-green-100 text-green-800">Pagado</Badge>
+      case "parcial":
+        return <Badge variant="outline" className="text-xs border-blue-500 text-blue-700">Pago Parcial</Badge>
+      default:
+        return null
     }
   }
 
@@ -64,19 +96,36 @@ export default function PedidosPendientesPage() {
     }
   }
 
-  const handleMarcarRecibido = (pedidoId: number) => {
-    toast({
-      title: "Pedido actualizado",
-      description: `El pedido #${pedidoId} ha sido marcado como recibido`,
+  const handleOpenStatusDialog = (pedido: any, action: 'receive' | 'cancel' | 'update') => {
+    setSelectedPedido(pedido)
+    const defaultStatus = action === 'receive' ? 'recibido' : action === 'cancel' ? 'cancelado' : ''
+    setUpdateData({ 
+      newStatus: defaultStatus,
+      paymentStatus: pedido.payment_status || 'pendiente',
+      observations: '',
+      receivedQuantity: pedido.cantidad_solicitada
     })
+    setIsDialogOpen(true)
   }
 
-  const handleCancelarPedido = (pedidoId: number) => {
+  const handleUpdateStatus = () => {
+    if (!selectedPedido || !updateData.newStatus) return
+
+    const statusMessages = {
+      recibido: "El pedido ha sido marcado como recibido",
+      cancelado: "El pedido ha sido cancelado",
+      en_transito: "El pedido está en tránsito",
+      parcial: "Se ha registrado una recepción parcial"
+    }
+
     toast({
-      title: "Pedido cancelado",
-      description: `El pedido #${pedidoId} ha sido cancelado`,
-      variant: "destructive"
+      title: "Pedido actualizado",
+      description: `Pedido #${selectedPedido.id}: ${statusMessages[updateData.newStatus as keyof typeof statusMessages]}`,
+      variant: updateData.newStatus === 'cancelado' ? 'destructive' : 'default'
     })
+
+    setIsDialogOpen(false)
+    setSelectedPedido(null)
   }
 
   return (
@@ -205,10 +254,13 @@ export default function PedidosPendientesPage() {
                           </div>
                         </div>
 
-                        <div className="mt-2 flex items-center justify-between">
-                          <div>
-                            <span className="text-sm text-muted-foreground">Total: </span>
-                            <span className="font-semibold">{formatCurrency(pedido.costo_total)}</span>
+                        <div className="mt-2 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="text-sm text-muted-foreground">Total: </span>
+                              <span className="font-semibold">{formatCurrency(pedido.costo_total)}</span>
+                            </div>
+                            {getPaymentStatusBadge(pedido.payment_status || 'pendiente')}
                           </div>
                           {pedido.observaciones && (
                             <div className="text-xs text-muted-foreground max-w-md">
@@ -224,28 +276,41 @@ export default function PedidosPendientesPage() {
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => handleMarcarRecibido(pedido.id)}
+                              onClick={() => handleOpenStatusDialog(pedido, 'receive')}
                             >
-                              Marcar recibido
+                              <CheckCircleIcon className="h-4 w-4 mr-1" />
+                              Recibir
                             </Button>
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => handleCancelarPedido(pedido.id)}
+                              onClick={() => handleOpenStatusDialog(pedido, 'cancel')}
                               className="text-red-600 hover:text-red-700"
                             >
+                              <AlertCircleIcon className="h-4 w-4 mr-1" />
                               Cancelar
                             </Button>
                           </>
                         )}
                         {pedido.estado === "en_transito" && (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleMarcarRecibido(pedido.id)}
-                          >
-                            Marcar recibido
-                          </Button>
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleOpenStatusDialog(pedido, 'receive')}
+                            >
+                              <CheckCircleIcon className="h-4 w-4 mr-1" />
+                              Recibir
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleOpenStatusDialog(pedido, 'update')}
+                            >
+                              <FileTextIcon className="h-4 w-4 mr-1" />
+                              Actualizar
+                            </Button>
+                          </>
                         )}
                         {(pedido.estado === "recibido" || pedido.estado === "cancelado") && (
                           <Button variant="outline" size="sm" disabled>
@@ -281,6 +346,84 @@ export default function PedidosPendientesPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Status Update Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Actualizar Estado del Pedido</DialogTitle>
+            <DialogDescription>
+              Pedido #{selectedPedido?.id} - {selectedPedido?.medicamento_nombre}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="status">Estado</Label>
+              <Select value={updateData.newStatus} onValueChange={(value) => setUpdateData({...updateData, newStatus: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en_transito">En tránsito</SelectItem>
+                  <SelectItem value="recibido">Recibido completo</SelectItem>
+                  <SelectItem value="parcial">Recibido parcial</SelectItem>
+                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="payment">Estado de Pago</Label>
+              <Select value={updateData.paymentStatus} onValueChange={(value) => setUpdateData({...updateData, paymentStatus: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Estado de pago" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pendiente">Pendiente</SelectItem>
+                  <SelectItem value="parcial">Pago parcial</SelectItem>
+                  <SelectItem value="pagado">Pagado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {updateData.newStatus === 'parcial' && (
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Cantidad recibida</Label>
+                <input
+                  id="quantity"
+                  type="number"
+                  className="w-full p-2 border rounded"
+                  value={updateData.receivedQuantity || ''}
+                  onChange={(e) => setUpdateData({...updateData, receivedQuantity: parseInt(e.target.value)})}
+                  max={selectedPedido?.cantidad_solicitada}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Solicitado: {selectedPedido?.cantidad_solicitada} unidades
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="observations">Observaciones</Label>
+              <Textarea
+                id="observations"
+                placeholder="Notas adicionales (opcional)"
+                value={updateData.observations}
+                onChange={(e) => setUpdateData({...updateData, observations: e.target.value})}
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleUpdateStatus}>
+                Actualizar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 

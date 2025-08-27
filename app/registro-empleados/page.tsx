@@ -10,6 +10,8 @@ import React, { useState } from "react"
 import Link from "next/link"
 import { useToast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
+import { generateSecurePassword, sendEmployeeCredentials } from "@/src/utils/auth"
+import { validateEmailAndDNI } from "@/src/utils/validation"
 
 // Opciones para el Rol, podrían venir de una constante o API en una app real
 const rolesDisponibles = [
@@ -28,32 +30,30 @@ export default function RegistroEmpleadosPage() {
   const [fechaNacimiento, setFechaNacimiento] = useState("")
   const [dni, setDni] = useState("")
   const [rol, setRol] = useState("")
-  const [email, setEmail] = useState("") // Usaremos DNI como email/usuario para login
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const [email, setEmail] = useState("")
   const [error, setError] = useState("")
   const [isExito, setIsExito] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
 
   const handleRegistro = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsExito(false)
 
-    if (!nombre || !apellido || !fechaNacimiento || !dni || !rol || !email || !password || !confirmPassword) {
+    if (!nombre || !apellido || !fechaNacimiento || !dni || !rol || !email) {
       setError("Todos los campos son obligatorios.")
       return
     }
 
-    if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden.")
+    // Validate email and DNI with improved logic
+    const validationError = validateEmailAndDNI(email, dni)
+    if (validationError) {
+      setError(validationError)
       return
     }
 
-    // Validación simple de DNI (longitud)
-    if (dni.length < 7 || dni.length > 8) {
-      setError("El DNI debe tener entre 7 y 8 dígitos.")
-      return
-    }
+    setIsLoading(true)
     
     // En una aplicación real, aquí harías validaciones más robustas y llamadas a API
     const existingUsers = JSON.parse(localStorage.getItem("registeredUsers") || "[]")
@@ -64,30 +64,56 @@ export default function RegistroEmpleadosPage() {
       return
     }
 
-    // Crear el nombre completo para consistencia
-    const nombreCompleto = `${nombre} ${apellido}`;
+    try {
+      // Generate secure password
+      const { password: generatedPassword } = generateSecurePassword(12)
+      
+      // Crear el nombre completo para consistencia
+      const nombreCompleto = `${nombre} ${apellido}`
 
-    const newUser = { 
-      nombre: nombreCompleto, // Usar nombre completo
-      fechaNacimiento, 
-      dni, 
-      rol, // El rol seleccionado por el usuario
-      email, 
-      password 
+      const newUser = { 
+        nombre: nombreCompleto,
+        fechaNacimiento, 
+        dni, 
+        rol,
+        email, 
+        password: generatedPassword,
+        createdAt: new Date().toISOString(),
+        mustChangePassword: true
+      }
+      
+      existingUsers.push(newUser)
+      localStorage.setItem("registeredUsers", JSON.stringify(existingUsers))
+
+      // Send credentials via email
+      const emailResult = await sendEmployeeCredentials(email, nombreCompleto, generatedPassword)
+      
+      if (emailResult.success) {
+        setEmailSent(true)
+        setIsExito(true)
+        toast({
+          title: "¡Empleado registrado exitosamente!",
+          description: "Las credenciales han sido enviadas al email proporcionado.",
+        })
+      } else {
+        setError("Usuario creado pero no se pudo enviar el email. Contacta al administrador.")
+        toast({
+          title: "Advertencia",
+          description: emailResult.message,
+          variant: "destructive",
+        })
+      }
+      
+      setTimeout(() => {
+        router.push("/empleados")
+      }, 3000)
+      
+    } catch (error) {
+      console.error("Error registrando empleado:", error)
+      setError("Error al registrar el empleado. Por favor, intenta nuevamente.")
+    } finally {
+      setIsLoading(false)
     }
-    existingUsers.push(newUser)
-    localStorage.setItem("registeredUsers", JSON.stringify(existingUsers))
-
-    console.log("Nuevo empleado registrado:", newUser)
-    setIsExito(true)
-    toast({
-      title: "¡Éxito!",
-      description: "Registro finalizado correctamente. Ahora puedes iniciar sesión.",
-    })
-
-    setTimeout(() => {
-      router.push("/login")
-    }, 3000)
   }
 
   if (isExito) {
@@ -98,10 +124,13 @@ export default function RegistroEmpleadosPage() {
           <CheckCircleIcon className="h-20 w-20 text-green-500 mx-auto mb-6" />
           <CardTitle className="text-3xl mb-4">¡ÉXITO!</CardTitle>
           <CardDescription className="text-lg mb-6">
-            Registro finalizado correctamente. Serás redirigido al Login.
+            {emailSent 
+              ? "Empleado registrado exitosamente. Las credenciales han sido enviadas por email."
+              : "Empleado registrado. Contacta al administrador para obtener las credenciales."
+            }
           </CardDescription>
-          <Button onClick={() => router.push("/login")} className="w-full">
-            Ir a Iniciar Sesión
+          <Button onClick={() => router.push("/empleados")} className="w-full">
+            Volver a Empleados
           </Button>
         </Card>
       </div>
@@ -149,37 +178,37 @@ export default function RegistroEmpleadosPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                 <div className="grid gap-2">
+              </div>
+              <div className="mb-6">
+                <div className="grid gap-2">
                   <Label htmlFor="email">Email (para iniciar sesión)</Label>
                   <Input id="email" type="email" placeholder="tu@email.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="password">Contraseña</Label>
-                  <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
-                  <Input id="confirmPassword" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+              <div className="mb-6">
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h4 className="font-medium text-blue-900 mb-2">📧 Credenciales por Email</h4>
+                  <p className="text-sm text-blue-700">
+                    Se generará una contraseña segura automáticamente y se enviará junto con las credenciales de acceso al email proporcionado.
+                  </p>
                 </div>
               </div>
 
               {error && <p className="text-sm text-red-600 text-center mb-4">{error}</p>}
 
               <div className="grid grid-cols-2 gap-4">
-                <Button type="submit" className="w-full">
-                  Registrar
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Registrando..." : "Registrar Empleado"}
                 </Button>
-                <Button variant="outline" className="w-full" type="button" onClick={() => router.push("/login")}>
+                <Button variant="outline" className="w-full" type="button" onClick={() => router.push("/empleados")} disabled={isLoading}>
                   Cancelar
                 </Button>
               </div>
             </form>
           </CardContent>
           <CardFooter className="text-center text-sm mt-4">
-            <p>¿Ya tienes una cuenta? <Link href="/login" className="underline">Inicia Sesión aquí</Link></p>
+            <p>¿Necesitas ver la lista de empleados? <Link href="/empleados" className="underline">Ver Empleados</Link></p>
           </CardFooter>
         </Card>
       </div>

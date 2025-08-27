@@ -14,12 +14,48 @@ import React, { useEffect, useState } from "react"
 
 // Definición base de los items de navegación
 const baseNavItems = [
-  { href: "/menu-principal", label: "Inicio", icon: HomeIcon, roles: ["supervisor", "enfermero"] },
-  { href: "/empleados", label: "Empleados", icon: UserCogIcon, roles: ["supervisor"] },
-  { href: "/registro-asistencia", label: "Reg. Asistencia", icon: UserPlusIcon, roles: ["supervisor", "enfermero"] },
-  { href: "/compras", label: "Compras", icon: ShoppingCartIcon, roles: ["supervisor"] }, // Solo supervisor por ahora
-  { href: "/menu-medicamentos", label: "Medicamentos", icon: PillIcon, roles: ["supervisor", "enfermero"] },
-  { href: "/perfil", label: "Mi Perfil", icon: UserIcon, roles: ["supervisor", "enfermero"] },
+  { 
+    href: "/menu-principal", 
+    label: "Inicio", 
+    icon: HomeIcon, 
+    roles: ["supervisor", "enfermero"],
+    children: []
+  },
+  { 
+    href: "/empleados", 
+    label: "Empleados", 
+    icon: UserCogIcon, 
+    roles: ["supervisor"],
+    children: ["/registro-empleados", "/empleado"]
+  },
+  { 
+    href: "/registro-asistencia", 
+    label: "Reg. Asistencia", 
+    icon: UserPlusIcon, 
+    roles: ["supervisor", "enfermero"],
+    children: ["/informe-presentismo"]
+  },
+  { 
+    href: "/compras", 
+    label: "Compras", 
+    icon: ShoppingCartIcon, 
+    roles: ["supervisor"],
+    children: ["/compras/necesidades", "/compras/registrar", "/compras/pedidos", "/compras/historial"]
+  },
+  { 
+    href: "/menu-medicamentos", 
+    label: "Medicamentos", 
+    icon: PillIcon, 
+    roles: ["supervisor", "enfermero"],
+    children: ["/menu-medicamentos/agregar", "/menu-medicamentos/ranking"]
+  },
+  { 
+    href: "/perfil", 
+    label: "Mi Perfil", 
+    icon: UserIcon, 
+    roles: ["supervisor", "enfermero"],
+    children: ["/cambiar-contrasena"]
+  },
 ]
 
 interface CustomSidebarProps {
@@ -64,29 +100,51 @@ export function CustomSidebar({ isCollapsed, toggleSidebar }: CustomSidebarProps
     }
   }, [pathname]); // Re-ejecutar si cambia la ruta para asegurar que el rol sigue siendo válido o refrescar si es necesario
 
+  const isActiveRoute = (item: any) => {
+    // Exact match
+    if (pathname === item.href) return true
+    
+    // Check if current path is a child route
+    return item.children.some((childPath: string) => {
+      // Handle dynamic routes like /empleado/[id]
+      if (childPath.includes('[id]')) {
+        const baseRoute = childPath.replace('/[id]', '')
+        return pathname.startsWith(baseRoute)
+      }
+      return pathname === childPath || pathname.startsWith(childPath + '/')
+    })
+  }
+
   const renderNavLinks = (isMobile = false) =>
-    currentNavItems.map((item) => (
-      <Link key={item.label} href={item.href} legacyBehavior passHref>
-        <Button
-          variant={pathname === item.href ? "secondary" : "ghost"}
-          className={cn(
-            "w-full justify-start",
-            isMobile && "text-lg py-3",
-            !isMobile && isCollapsed && "justify-center px-2",
-            !isMobile && !isCollapsed && "px-3"
-          )}
-        >
-          <item.icon className={cn(
-            "h-5 w-5",
-            isMobile && "h-6 w-6 mr-4",
-            !isMobile && isCollapsed && "mr-0",
-            !isMobile && !isCollapsed && "mr-3"
-            )} />
-          {!isMobile && !isCollapsed && item.label}
-          {isMobile && item.label}
-        </Button>
-      </Link>
-    ))
+    currentNavItems.map((item) => {
+      const isActive = isActiveRoute(item)
+      
+      return (
+        <Link key={item.label} href={item.href} legacyBehavior passHref>
+          <Button
+            variant={isActive ? "secondary" : "ghost"}
+            className={cn(
+              "w-full justify-start transition-colors relative",
+              isMobile && "text-lg py-3",
+              !isMobile && isCollapsed && "justify-center px-2",
+              !isMobile && !isCollapsed && "px-3",
+              isActive && "bg-primary/10 text-primary font-medium",
+              isActive && !isMobile && "border-r-2 border-primary"
+            )}
+          >
+            <item.icon className={cn(
+              "h-5 w-5",
+              isMobile && "h-6 w-6 mr-4",
+              !isMobile && isCollapsed && "mr-0",
+              !isMobile && !isCollapsed && "mr-3",
+              isActive && "text-primary"
+              )} />
+            {!isMobile && !isCollapsed && item.label}
+            {isMobile && item.label}
+          </Button>
+        </Link>
+      )
+    })
 
   return (
     <>

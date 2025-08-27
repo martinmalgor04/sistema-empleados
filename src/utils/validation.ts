@@ -15,7 +15,9 @@ export const isPhone = (phone: string): boolean => {
 }
 
 export const isDNI = (dni: string): boolean => {
-  return FORM_VALIDATION.DNI_PATTERN.test(dni)
+  // Allow 7-8 digits for DNI (without letter validation for now)
+  const dniPattern = /^\d{7,8}$/
+  return dniPattern.test(dni.trim())
 }
 
 export const isMinLength = (value: string, minLength: number): boolean => {
@@ -34,6 +36,7 @@ export const isPasswordValid = (password: string): boolean => {
 export const validateEmail = (email: string): string | null => {
   if (!isRequired(email)) return 'El email es requerido'
   if (!isEmail(email)) return 'Formato de email inválido'
+  if (email.length > 100) return 'El email no puede exceder 100 caracteres'
   return null
 }
 
@@ -45,7 +48,23 @@ export const validatePhone = (phone: string): string | null => {
 
 export const validateDNI = (dni: string): string | null => {
   if (!isRequired(dni)) return 'El DNI es requerido'
-  if (!isDNI(dni)) return 'Formato de DNI inválido'
+  if (!isDNI(dni)) return 'El DNI debe tener entre 7 y 8 dígitos'
+  return null
+}
+
+// Validate that email and DNI are different formats
+export const validateEmailAndDNI = (email: string, dni: string): string | null => {
+  const emailError = validateEmail(email)
+  if (emailError) return emailError
+  
+  const dniError = validateDNI(dni)
+  if (dniError) return dniError
+  
+  // Ensure email is not just DNI + domain
+  if (email.startsWith(dni)) {
+    return 'El email no puede comenzar con el número de DNI'
+  }
+  
   return null
 }
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { CustomSidebar } from '@/src/components/navigation/layout/custom-sidebar'
+import { Breadcrumb } from '@/src/components/navigation/breadcrumb'
 import { cn } from '@/lib/utils'
 
 const PUBLIC_ROUTES = ['/login', '/olvide-contrasena', '/terminos-y-condiciones']
@@ -45,6 +46,7 @@ export function ClientLayoutWrapper({ children }: ClientLayoutWrapperProps) {
 
         
         <div className="container mx-auto p-4 md:p-6">
+          <Breadcrumb />
           {children}
         </div>
       </main>
