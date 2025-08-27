@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { 
   ArrowLeftIcon, 
   SearchIcon, 
@@ -15,7 +16,9 @@ import {
   DownloadIcon,
   CalendarIcon,
   DollarSignIcon,
-  ShoppingBagIcon
+  ShoppingBagIcon,
+  XIcon,
+  AlertCircleIcon
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import comprasData from "@/data/compras.json"
@@ -25,13 +28,13 @@ export default function HistorialComprasPage() {
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [filtroMes, setFiltroMes] = useState("todos")
-  const [filtroCategoria, setFiltroCategoria] = useState("todas")
   const [filtroArea, setFiltroArea] = useState("todas")
   const [filtroEstado, setFiltroEstado] = useState("todos")
+  const [cancelDialog, setCancelDialog] = useState<{open: boolean, compraId: number | null}>({open: false, compraId: null})
 
   const { historial_compras } = comprasData
 
-  // Filtrar compras
+  // Filtrar compras (removed categoria filter)
   const comprasFiltradas = historial_compras.filter(compra => {
     const matchesSearch = compra.local_vendedor.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          compra.area.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -41,11 +44,10 @@ export default function HistorialComprasPage() {
     const mesCompra = fechaCompra.getMonth() + 1 // getMonth() returns 0-11
     const matchesMes = filtroMes === "todos" || parseInt(filtroMes) === mesCompra
     
-    const matchesCategoria = filtroCategoria === "todas" || compra.categoria_predominante === filtroCategoria
     const matchesArea = filtroArea === "todas" || compra.area === filtroArea
     const matchesEstado = filtroEstado === "todos" || compra.estado === filtroEstado
     
-    return matchesSearch && matchesMes && matchesCategoria && matchesArea && matchesEstado
+    return matchesSearch && matchesMes && matchesArea && matchesEstado
   })
 
   // Calcular estadísticas del historial filtrado
@@ -79,14 +81,20 @@ export default function HistorialComprasPage() {
     }
   }
 
-  const getCategoriaColor = (categoria: string) => {
-    const colors: { [key: string]: string } = {
-      "Medicamentos": "bg-blue-100 text-blue-800",
-      "Lácteos": "bg-yellow-100 text-yellow-800", 
-      "Limpieza": "bg-green-100 text-green-800",
-      "Alimentos": "bg-purple-100 text-purple-800"
-    }
-    return colors[categoria] || "bg-gray-100 text-gray-800"
+  const handleCancelPurchase = (compraId: number) => {
+    setCancelDialog({open: true, compraId})
+  }
+
+  const confirmCancelPurchase = () => {
+    if (!cancelDialog.compraId) return
+    
+    toast({
+      title: "Compra cancelada",
+      description: `La compra #${cancelDialog.compraId} ha sido cancelada`,
+      variant: "destructive"
+    })
+    
+    setCancelDialog({open: false, compraId: null})
   }
 
   const handleVerDetalle = (compraId: number) => {
@@ -172,7 +180,7 @@ export default function HistorialComprasPage() {
       {/* Filtros */}
       <Card>
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Búsqueda */}
             <div className="relative">
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -203,20 +211,6 @@ export default function HistorialComprasPage() {
                 <SelectItem value="10">Octubre</SelectItem>
                 <SelectItem value="11">Noviembre</SelectItem>
                 <SelectItem value="12">Diciembre</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Filtro por categoría */}
-            <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
-              <SelectTrigger>
-                <SelectValue placeholder="Categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todas">Todas las categorías</SelectItem>
-                <SelectItem value="Medicamentos">Medicamentos</SelectItem>
-                <SelectItem value="Lácteos">Lácteos</SelectItem>
-                <SelectItem value="Limpieza">Limpieza</SelectItem>
-                <SelectItem value="Alimentos">Alimentos</SelectItem>
               </SelectContent>
             </Select>
 
@@ -273,9 +267,6 @@ export default function HistorialComprasPage() {
                         <div className="flex items-center space-x-4 mb-2">
                           <h3 className="font-semibold text-lg">{compra.local_vendedor}</h3>
                           {getEstadoBadge(compra.estado)}
-                          <Badge variant="outline" className={`text-xs ${getCategoriaColor(compra.categoria_predominante)}`}>
-                            {compra.categoria_predominante}
-                          </Badge>
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
@@ -319,6 +310,17 @@ export default function HistorialComprasPage() {
                         >
                           <DownloadIcon className="h-4 w-4" />
                         </Button>
+                        {compra.estado === "pendiente" && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleCancelPurchase(compra.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <XIcon className="h-4 w-4 mr-1" />
+                            Cancelar
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -328,6 +330,36 @@ export default function HistorialComprasPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Cancel Purchase Dialog */}
+      <Dialog open={cancelDialog.open} onOpenChange={(open) => setCancelDialog({open, compraId: null})}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircleIcon className="h-5 w-5 text-red-500" />
+              Cancelar Compra
+            </DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas cancelar la compra #{cancelDialog.compraId}?
+              Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setCancelDialog({open: false, compraId: null})}
+            >
+              No, mantener compra
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmCancelPurchase}
+            >
+              Sí, cancelar compra
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 

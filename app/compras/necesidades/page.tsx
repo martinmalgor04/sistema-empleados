@@ -7,13 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { 
   ArrowLeftIcon, 
   SearchIcon, 
   FilterIcon, 
   PrinterIcon,
   SortAscIcon,
-  AlertTriangleIcon
+  AlertTriangleIcon,
+  PlusIcon
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import comprasData from "@/data/compras.json"
@@ -25,6 +29,16 @@ export default function NecesidadesPage() {
   const [filtroCategoria, setFiltroCategoria] = useState("todas")
   const [filtroPrioridad, setFiltroPrioridad] = useState("todas")
   const [filtroArea, setFiltroArea] = useState("todas")
+  const [isAddingNeed, setIsAddingNeed] = useState(false)
+  const [newNeed, setNewNeed] = useState({
+    producto: "",
+    cantidad_solicitada: "",
+    unidad: "",
+    categoria: "",
+    area: "",
+    prioridad: "media",
+    observaciones: ""
+  })
 
   const { necesidades } = comprasData
 
@@ -69,6 +83,45 @@ export default function NecesidadesPage() {
     })
   }
 
+  const handleAddNeed = () => {
+    if (!newNeed.producto || !newNeed.cantidad_solicitada || !newNeed.unidad || !newNeed.categoria || !newNeed.area) {
+      toast({
+        title: "Error de validación",
+        description: "Todos los campos marcados con * son obligatorios",
+        variant: "destructive"
+      })
+      return
+    }
+
+    const cantidad = parseInt(newNeed.cantidad_solicitada)
+    if (isNaN(cantidad) || cantidad <= 0) {
+      toast({
+        title: "Error de validación",
+        description: "La cantidad debe ser un número válido mayor a 0",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // In a real app, this would save to a database
+    toast({
+      title: "Necesidad agregada",
+      description: `${newNeed.producto} ha sido agregado a la lista de necesidades`,
+    })
+
+    // Reset form
+    setNewNeed({
+      producto: "",
+      cantidad_solicitada: "",
+      unidad: "",
+      categoria: "",
+      area: "",
+      prioridad: "media",
+      observaciones: ""
+    })
+    setIsAddingNeed(false)
+  }
+
   return (
     <div className="container mx-auto p-4 space-y-6">
       {/* Header */}
@@ -86,6 +139,122 @@ export default function NecesidadesPage() {
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          <Dialog open={isAddingNeed} onOpenChange={setIsAddingNeed}>
+            <DialogTrigger asChild>
+              <Button>
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Agregar Necesidad
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Agregar Nueva Necesidad</DialogTitle>
+                <DialogDescription>
+                  Complete los datos del producto necesario
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="producto">Producto *</Label>
+                  <Input
+                    id="producto"
+                    placeholder="Nombre del producto"
+                    value={newNeed.producto}
+                    onChange={(e) => setNewNeed({...newNeed, producto: e.target.value})}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="cantidad">Cantidad *</Label>
+                    <Input
+                      id="cantidad"
+                      type="number"
+                      min="1"
+                      placeholder="0"
+                      value={newNeed.cantidad_solicitada}
+                      onChange={(e) => setNewNeed({...newNeed, cantidad_solicitada: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="unidad">Unidad *</Label>
+                    <Select value={newNeed.unidad} onValueChange={(value) => setNewNeed({...newNeed, unidad: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Unidad" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="uds">Unidades</SelectItem>
+                        <SelectItem value="kg">Kilogramos</SelectItem>
+                        <SelectItem value="grs">Gramos</SelectItem>
+                        <SelectItem value="litros">Litros</SelectItem>
+                        <SelectItem value="ml">Mililitros</SelectItem>
+                        <SelectItem value="cajas">Cajas</SelectItem>
+                        <SelectItem value="paquetes">Paquetes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="categoria">Categoría *</Label>
+                  <Select value={newNeed.categoria} onValueChange={(value) => setNewNeed({...newNeed, categoria: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Medicamentos">Medicamentos</SelectItem>
+                      <SelectItem value="Alimentos">Alimentos</SelectItem>
+                      <SelectItem value="Lácteos">Lácteos</SelectItem>
+                      <SelectItem value="Limpieza">Limpieza</SelectItem>
+                      <SelectItem value="Oficina">Oficina</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="area">Area *</Label>
+                  <Select value={newNeed.area} onValueChange={(value) => setNewNeed({...newNeed, area: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Área" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Enfermería">Enfermería</SelectItem>
+                      <SelectItem value="Cocina">Cocina</SelectItem>
+                      <SelectItem value="Limpieza">Limpieza</SelectItem>
+                      <SelectItem value="Administración">Administración</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="prioridad">Prioridad</Label>
+                  <Select value={newNeed.prioridad} onValueChange={(value) => setNewNeed({...newNeed, prioridad: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Prioridad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="alta">Alta</SelectItem>
+                      <SelectItem value="media">Media</SelectItem>
+                      <SelectItem value="baja">Baja</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="observaciones">Observaciones</Label>
+                  <Textarea
+                    id="observaciones"
+                    placeholder="Observaciones adicionales (opcional)"
+                    value={newNeed.observaciones}
+                    onChange={(e) => setNewNeed({...newNeed, observaciones: e.target.value})}
+                  />
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setIsAddingNeed(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleAddNeed}>
+                    Agregar
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button variant="outline" size="sm" onClick={handleImprimir}>
             <FilterIcon className="h-4 w-4 mr-2" />
             Filtros

@@ -12,7 +12,9 @@ import {
   HistoryIcon,
   PlusIcon,
   TrendingUpIcon,
-  DollarSignIcon
+  DollarSignIcon,
+  BuildingIcon,
+  SettingsIcon
 } from "lucide-react"
 import comprasData from "@/data/compras.json"
 
@@ -105,7 +107,7 @@ export default function ComprasPage() {
       </div>
 
       {/* Botones principales del menú */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
         {/* Lista de necesidades */}
         <Card className="cursor-pointer hover:shadow-lg transition-shadow">
           <CardContent 
@@ -178,6 +180,42 @@ export default function ComprasPage() {
               <h3 className="text-lg font-semibold">Historial de compras</h3>
               <p className="text-sm text-muted-foreground">
                 Ver todas las compras anteriores
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Gestión de proveedores */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <CardContent 
+            className="p-6 text-center space-y-4"
+            onClick={() => router.push("/compras/proveedores")}
+          >
+            <div className="h-16 w-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto">
+              <BuildingIcon className="h-8 w-8 text-indigo-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">Proveedores</h3>
+              <p className="text-sm text-muted-foreground">
+                Gestionar proveedores del sistema
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Configuración */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <CardContent 
+            className="p-6 text-center space-y-4"
+            onClick={() => router.push("/compras/configuracion")}
+          >
+            <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+              <SettingsIcon className="h-8 w-8 text-gray-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">Configuración</h3>
+              <p className="text-sm text-muted-foreground">
+                Gestionar categorías y áreas
               </p>
             </div>
           </CardContent>

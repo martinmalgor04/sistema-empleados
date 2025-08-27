@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
 import { 
   ArrowLeftIcon, 
   ChevronRightIcon,
@@ -17,10 +18,16 @@ import {
   ShoppingCartIcon,
   CalendarIcon,
   ClockIcon,
-  UploadIcon
+  UploadIcon,
+  SearchIcon,
+  XIcon,
+  PlusIcon,
+  BuildingIcon
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import comprasData from "@/data/compras.json"
+import proveedoresData from "@/data/proveedores.json"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface ProductoSeleccionado {
   id: number
@@ -35,11 +42,26 @@ interface ProductoSeleccionado {
   subtotal?: number
 }
 
+interface Provider {
+  id: number
+  cuit: string
+  nombre: string
+  telefono: string
+  direccion: string
+  status: 'active' | 'inactive'
+  createdAt?: string
+}
+
 export default function RegistrarCompraPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const [paso, setPaso] = useState(1)
+  const [paso, setPaso] = useState(1) // Start at 1 for product selection
   const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoSeleccionado[]>([])
+  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
+  const [isCreatingProvider, setIsCreatingProvider] = useState(false)
+  const [newProvider, setNewProvider] = useState({ cuit: "", nombre: "", telefono: "", direccion: "" })
+  const [providerSearch, setProviderSearch] = useState("")
+  const [cancelDialog, setCancelDialog] = useState(false)
   const [datosGenerales, setDatosGenerales] = useState({
     localVendedor: "",
     fecha: "",
@@ -49,7 +71,38 @@ export default function RegistrarCompraPage() {
     comprobante: null as File | null
   })
 
+  // Filter states
+  const [filtroCategoria, setFiltroCategoria] = useState("todas")
+  const [filtroArea, setFiltroArea] = useState("todas")
+  const [filtroPrioridad, setFiltroPrioridad] = useState("todas")
+  const [ordenarPor, setOrdenarPor] = useState("nombre") // nombre, cantidad, prioridad
+  const [searchTerm, setSearchTerm] = useState("")
+
   const { necesidades } = comprasData
+
+  // Filter and sort necesidades
+  const necesidadesFiltradas = necesidades
+    .filter(necesidad => {
+      const matchesSearch = necesidad.producto.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesCategoria = filtroCategoria === "todas" || necesidad.categoria === filtroCategoria
+      const matchesArea = filtroArea === "todas" || necesidad.area === filtroArea
+      const matchesPrioridad = filtroPrioridad === "todas" || necesidad.prioridad === filtroPrioridad
+      
+      return matchesSearch && matchesCategoria && matchesArea && matchesPrioridad
+    })
+    .sort((a, b) => {
+      switch (ordenarPor) {
+        case "cantidad":
+          return b.cantidad_solicitada - a.cantidad_solicitada
+        case "prioridad":
+          const prioridadOrder = { "alta": 3, "media": 2, "baja": 1 }
+          return (prioridadOrder[b.prioridad as keyof typeof prioridadOrder] || 0) - 
+                 (prioridadOrder[a.prioridad as keyof typeof prioridadOrder] || 0)
+        case "nombre":
+        default:
+          return a.producto.localeCompare(b.producto)
+      }
+    })
 
   const toggleProducto = (necesidad: any, isSelected: boolean) => {
     if (isSelected) {
@@ -66,6 +119,26 @@ export default function RegistrarCompraPage() {
       setProductosSeleccionados(productosSeleccionados.filter(p => p.id !== necesidad.id))
     }
   }
+
+  const resetFilters = () => {
+    setFiltroCategoria("todas")
+    setFiltroArea("todas")
+    setFiltroPrioridad("todas")
+    setOrdenarPor("nombre")
+    setSearchTerm("")
+  }
+
+  // Get unique values for filter options
+  const categorias = [...new Set(necesidades.map(n => n.categoria))]
+  const areas = [...new Set(necesidades.map(n => n.area))]
+  const prioridades = ["alta", "media", "baja"]
+
+  // Filter providers based on search
+  const providers = proveedoresData.filter(p => p.status === 'active') as Provider[]
+  const filteredProviders = providers.filter(provider => 
+    provider.nombre.toLowerCase().includes(providerSearch.toLowerCase()) ||
+    provider.cuit.includes(providerSearch)
+  )
 
   const updateProductoCantidadYPrecio = (id: number, cantidad: number, precio: number) => {
     setProductosSeleccionados(productos => 
@@ -98,15 +171,68 @@ export default function RegistrarCompraPage() {
       })
       return
     }
-    if (paso === 3 && (!datosGenerales.localVendedor || !datosGenerales.fecha)) {
+    if (paso === 3 && (!selectedProvider || !datosGenerales.fecha)) {
       toast({
         title: "Error",
-        description: "Completa los datos generales obligatorios",
+        description: "Selecciona un proveedor y completa la fecha",
         variant: "destructive"
       })
       return
     }
     setPaso(paso + 1)
+  }
+
+  const handleCancelOrder = () => {
+    setCancelDialog(true)
+  }
+
+  const confirmCancelOrder = () => {
+    toast({
+      title: "Pedido cancelado",
+      description: "El registro de compra ha sido cancelado",
+      variant: "destructive"
+    })
+    router.push("/compras")
+  }
+
+  const validateCUIT = (cuit: string): boolean => {
+    const cuitRegex = /^\d{2}-\d{8}-\d{1}$/
+    return cuitRegex.test(cuit)
+  }
+
+  const handleCreateProvider = () => {
+    if (!newProvider.cuit || !newProvider.nombre || !newProvider.telefono || !newProvider.direccion) {
+      toast({
+        title: "Error",
+        description: "Todos los campos del proveedor son obligatorios",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!validateCUIT(newProvider.cuit)) {
+      toast({
+        title: "Error",
+        description: "El CUIT debe tener el formato XX-XXXXXXXX-X",
+        variant: "destructive"
+      })
+      return
+    }
+
+    const provider: Provider = {
+      id: Math.max(...providers.map(p => p.id), 0) + 1,
+      ...newProvider,
+      status: 'active'
+    }
+
+    setSelectedProvider(provider)
+    setIsCreatingProvider(false)
+    setNewProvider({ cuit: "", nombre: "", telefono: "", direccion: "" })
+    
+    toast({
+      title: "Proveedor creado",
+      description: `${provider.nombre} ha sido seleccionado`,
+    })
   }
 
   const handleRegistrar = () => {
@@ -150,6 +276,10 @@ export default function RegistrarCompraPage() {
                 // Reset form
                 setPaso(1)
                 setProductosSeleccionados([])
+                setSelectedProvider(null)
+                setIsCreatingProvider(false)
+                setProviderSearch("")
+                setNewProvider({ cuit: "", nombre: "", telefono: "", direccion: "" })
                 setDatosGenerales({
                   localVendedor: "",
                   fecha: "",
@@ -206,6 +336,7 @@ export default function RegistrarCompraPage() {
         ))}
       </div>
 
+
       {/* Paso 1: Selección de Productos */}
       {paso === 1 && (
         <Card>
@@ -213,15 +344,126 @@ export default function RegistrarCompraPage() {
             <CardTitle>Paso 1: Selección de Productos</CardTitle>
             <CardDescription>
               Seleccione las necesidades en estado faltante correspondientes a la compra a registrar. 
-              Cuando hayas terminado, selecciona 'Siguiente'.
+              Use los filtros para encontrar productos específicos.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
+            {/* Filtros */}
+            <Card className="bg-muted/50">
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  {/* Búsqueda */}
+                  <div className="relative">
+                    <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar producto..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+
+                  {/* Filtro por categoría */}
+                  <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todas">Todas las categorías</SelectItem>
+                      {categorias.map((categoria) => (
+                        <SelectItem key={categoria} value={categoria}>{categoria}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Filtro por área */}
+                  <Select value={filtroArea} onValueChange={setFiltroArea}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Área" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todas">Todas las áreas</SelectItem>
+                      {areas.map((area) => (
+                        <SelectItem key={area} value={area}>{area}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Filtro por prioridad */}
+                  <Select value={filtroPrioridad} onValueChange={setFiltroPrioridad}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Prioridad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todas">Todas las prioridades</SelectItem>
+                      {prioridades.map((prioridad) => (
+                        <SelectItem key={prioridad} value={prioridad}>
+                          {prioridad.charAt(0).toUpperCase() + prioridad.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Ordenar por */}
+                  <Select value={ordenarPor} onValueChange={setOrdenarPor}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Ordenar por" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="nombre">Nombre</SelectItem>
+                      <SelectItem value="cantidad">Cantidad (mayor a menor)</SelectItem>
+                      <SelectItem value="prioridad">Prioridad (alta a baja)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-sm text-muted-foreground">
+                    Mostrando {necesidadesFiltradas.length} de {necesidades.length} productos
+                    {productosSeleccionados.length > 0 && (
+                      <span className="ml-2 font-medium text-primary">
+                        • {productosSeleccionados.length} seleccionados
+                      </span>
+                    )}
+                  </div>
+                  <Button variant="outline" size="sm" onClick={resetFilters}>
+                    Limpiar filtros
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tabla de productos */}
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-3 w-12"></th>
+                    <th className="text-left p-3 w-12">
+                      <Checkbox
+                        checked={necesidadesFiltradas.length > 0 && necesidadesFiltradas.every(n => productosSeleccionados.some(p => p.id === n.id))}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            // Seleccionar todos los filtrados que no estén ya seleccionados
+                            const nuevosSeleccionados = necesidadesFiltradas.filter(n => 
+                              !productosSeleccionados.some(p => p.id === n.id)
+                            ).map(n => ({
+                              id: n.id,
+                              nombre: n.producto,
+                              categoria: n.categoria,
+                              area: n.area,
+                              prioridad: n.prioridad,
+                              cantidad_solicitada: n.cantidad_solicitada,
+                              unidad: n.unidad
+                            }))
+                            setProductosSeleccionados([...productosSeleccionados, ...nuevosSeleccionados])
+                          } else {
+                            // Deseleccionar todos los filtrados
+                            const idsADeseleccionar = necesidadesFiltradas.map(n => n.id)
+                            setProductosSeleccionados(productosSeleccionados.filter(p => !idsADeseleccionar.includes(p.id)))
+                          }
+                        }}
+                      />
+                    </th>
                     <th className="text-left p-3 font-medium">Producto</th>
                     <th className="text-left p-3 font-medium">Cant. solicitada</th>
                     <th className="text-left p-3 font-medium">Categoría</th>
@@ -230,35 +472,62 @@ export default function RegistrarCompraPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {necesidades.map((necesidad) => (
-                    <tr key={necesidad.id} className="border-b hover:bg-muted/50">
-                      <td className="p-3">
-                        <Checkbox
-                          checked={productosSeleccionados.some(p => p.id === necesidad.id)}
-                          onCheckedChange={(checked) => toggleProducto(necesidad, checked as boolean)}
-                        />
-                      </td>
-                      <td className="p-3 font-medium">{necesidad.producto}</td>
-                      <td className="p-3">{necesidad.cantidad_solicitada} {necesidad.unidad}</td>
-                      <td className="p-3">{necesidad.categoria}</td>
-                      <td className="p-3">{necesidad.area}</td>
-                      <td className="p-3">
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          necesidad.prioridad === 'alta' ? 'bg-red-100 text-red-800' :
-                          necesidad.prioridad === 'media' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {necesidad.prioridad.charAt(0).toUpperCase() + necesidad.prioridad.slice(1)}
-                        </span>
+                  {necesidadesFiltradas.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="text-center p-8 text-muted-foreground">
+                        No se encontraron productos con los filtros aplicados
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    necesidadesFiltradas.map((necesidad) => (
+                      <tr key={necesidad.id} className="border-b hover:bg-muted/50">
+                        <td className="p-3">
+                          <Checkbox
+                            checked={productosSeleccionados.some(p => p.id === necesidad.id)}
+                            onCheckedChange={(checked) => toggleProducto(necesidad, checked as boolean)}
+                          />
+                        </td>
+                        <td className="p-3 font-medium">{necesidad.producto}</td>
+                        <td className="p-3">
+                          <div className="font-medium">
+                            {necesidad.cantidad_solicitada} {necesidad.unidad}
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <Badge variant="outline" className="text-xs">
+                            {necesidad.categoria}
+                          </Badge>
+                        </td>
+                        <td className="p-3">
+                          <span className="text-sm">{necesidad.area}</span>
+                        </td>
+                        <td className="p-3">
+                          <Badge 
+                            variant={necesidad.prioridad === 'alta' ? 'destructive' : 
+                                   necesidad.prioridad === 'media' ? 'default' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {necesidad.prioridad.charAt(0).toUpperCase() + necesidad.prioridad.slice(1)}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
-            <div className="flex justify-end mt-6">
-              <Button onClick={handleSiguiente}>
-                Siguiente
+
+            <div className="flex justify-between items-center mt-6">
+              <Button 
+                variant="destructive" 
+                onClick={handleCancelOrder}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <XIcon className="h-4 w-4 mr-2" />
+                Cancelar Compra
+              </Button>
+              <Button onClick={handleSiguiente} disabled={productosSeleccionados.length === 0}>
+                Siguiente ({productosSeleccionados.length} productos)
                 <ChevronRightIcon className="h-4 w-4 ml-2" />
               </Button>
             </div>
@@ -353,14 +622,130 @@ export default function RegistrarCompraPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="local">Local/Vendedor:</Label>
-                <Input
-                  id="local"
-                  placeholder="Nombre del vendedor..."
-                  value={datosGenerales.localVendedor}
-                  onChange={(e) => setDatosGenerales({...datosGenerales, localVendedor: e.target.value})}
-                />
+              <div className="space-y-4">
+                <Label>Proveedor:</Label>
+                
+                {/* Selected Provider Display */}
+                {selectedProvider ? (
+                  <Card className="bg-green-50 border-green-200">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <BuildingIcon className="h-4 w-4 text-green-600" />
+                            <h4 className="font-medium text-green-800">{selectedProvider.nombre}</h4>
+                          </div>
+                          <p className="text-xs text-green-600">CUIT: {selectedProvider.cuit}</p>
+                          <p className="text-xs text-green-600">{selectedProvider.telefono}</p>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => setSelectedProvider(null)}>
+                          Cambiar
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-3">
+                    {/* Toggle buttons */}
+                    <div className="flex items-center justify-center space-x-2">
+                      <Button 
+                        variant={!isCreatingProvider ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setIsCreatingProvider(false)}
+                      >
+                        Seleccionar Existente
+                      </Button>
+                      <span className="text-muted-foreground text-sm">o</span>
+                      <Button 
+                        variant={isCreatingProvider ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setIsCreatingProvider(true)}
+                      >
+                        <PlusIcon className="h-3 w-3 mr-1" />
+                        Crear Nuevo
+                      </Button>
+                    </div>
+
+                    {/* Select Existing Provider */}
+                    {!isCreatingProvider && (
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <SearchIcon className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                          <Input
+                            placeholder="Buscar proveedor..."
+                            value={providerSearch}
+                            onChange={(e) => setProviderSearch(e.target.value)}
+                            className="pl-7 text-sm"
+                            size="sm"
+                          />
+                        </div>
+                        
+                        <div className="space-y-1 max-h-40 overflow-y-auto">
+                          {filteredProviders.length === 0 ? (
+                            <div className="text-center py-4 text-muted-foreground text-xs">
+                              {providerSearch ? "No se encontraron proveedores" : "No hay proveedores disponibles"}
+                            </div>
+                          ) : (
+                            filteredProviders.map((provider) => (
+                              <div 
+                                key={provider.id} 
+                                className="p-2 border rounded cursor-pointer hover:bg-muted/50 transition-colors" 
+                                onClick={() => setSelectedProvider(provider)}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <h5 className="font-medium text-sm">{provider.nombre}</h5>
+                                    <p className="text-xs text-muted-foreground">CUIT: {provider.cuit}</p>
+                                  </div>
+                                  <Button size="sm" variant="ghost">
+                                    Seleccionar
+                                  </Button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Create New Provider */}
+                    {isCreatingProvider && (
+                      <div className="p-3 border rounded-lg space-y-3">
+                        <h5 className="font-medium text-sm">Nuevo Proveedor</h5>
+                        <div className="grid grid-cols-1 gap-3">
+                          <Input
+                            placeholder="CUIT (XX-XXXXXXXX-X)"
+                            value={newProvider.cuit}
+                            onChange={(e) => setNewProvider({...newProvider, cuit: e.target.value})}
+                            className="text-sm"
+                          />
+                          <Input
+                            placeholder="Nombre del proveedor"
+                            value={newProvider.nombre}
+                            onChange={(e) => setNewProvider({...newProvider, nombre: e.target.value})}
+                            className="text-sm"
+                          />
+                          <Input
+                            placeholder="Teléfono"
+                            value={newProvider.telefono}
+                            onChange={(e) => setNewProvider({...newProvider, telefono: e.target.value})}
+                            className="text-sm"
+                          />
+                          <Input
+                            placeholder="Dirección"
+                            value={newProvider.direccion}
+                            onChange={(e) => setNewProvider({...newProvider, direccion: e.target.value})}
+                            className="text-sm"
+                          />
+                        </div>
+                        <Button onClick={handleCreateProvider} size="sm" className="w-full">
+                          <PlusIcon className="h-3 w-3 mr-1" />
+                          Crear y Seleccionar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="fecha">Fecha de la compra:</Label>
@@ -505,6 +890,30 @@ export default function RegistrarCompraPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Cancel Order Dialog */}
+      <Dialog open={cancelDialog} onOpenChange={setCancelDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <XIcon className="h-5 w-5 text-red-500" />
+              Cancelar Registro de Compra
+            </DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas cancelar el registro de esta compra?
+              Perderás todos los datos ingresados y volverás al menú principal de compras.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button variant="outline" onClick={() => setCancelDialog(false)}>
+              No, continuar registro
+            </Button>
+            <Button variant="destructive" onClick={confirmCancelOrder}>
+              Sí, cancelar registro
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 

@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "cuit": "20-12345678-9",
+    "nombre": "Farmacia Central S.A.",
+    "telefono": "+54 11 4567-8901",
+    "direccion": "Av. Corrientes 1234, Ciudad Autónoma de Buenos Aires",
+    "status": "active",
+    "createdAt": "2024-01-15T10:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "cuit": "30-98765432-1",
+    "nombre": "Distribuidora Médica del Sur",
+    "telefono": "+54 11 9876-5432",
+    "direccion": "Av. Rivadavia 5678, Ciudad Autónoma de Buenos Aires",
+    "status": "active",
+    "createdAt": "2024-01-20T14:30:00.000Z"
+  },
+  {
+    "id": 3,
+    "cuit": "27-11111111-0",
+    "nombre": "Supermercado Central",
+    "telefono": "+54 11 1111-2222",
+    "direccion": "Av. Santa Fe 9012, Ciudad Autónoma de Buenos Aires",
+    "status": "active",
+    "createdAt": "2024-01-10T08:15:00.000Z"
+  },
+  {
+    "id": 4,
+    "cuit": "20-22222222-3",
+    "nombre": "Distribuidora de Limpieza SRL",
+    "telefono": "+54 11 3333-4444",
+    "direccion": "Av. Belgrano 3456, Ciudad Autónoma de Buenos Aires",
+    "status": "active",
+    "createdAt": "2024-01-25T16:45:00.000Z"
+  },
+  {
+    "id": 5,
+    "cuit": "23-33333333-5",
+    "nombre": "Alimentos Frescos del Norte",
+    "telefono": "+54 11 5555-6666",
+    "direccion": "Av. Cabildo 7890, Ciudad Autónoma de Buenos Aires",
+    "status": "active",
+    "createdAt": "2024-02-01T09:20:00.000Z"
+  }
+]
