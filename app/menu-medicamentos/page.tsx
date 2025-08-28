@@ -277,6 +277,13 @@ export default function MenuMedicamentosPage() {
           <h1 className="text-3xl font-bold">Medicamentos</h1>
           <p className="text-muted-foreground">Gestión de inventario y control de stock</p>
         </div>
+        <Button 
+          onClick={() => router.push("/menu-medicamentos/agregar")}
+          className="flex items-center gap-2"
+        >
+          <PlusIcon className="h-4 w-4" />
+          Agregar Medicamento
+        </Button>
       </div>
 
       {/* Sección Más Frecuentes - Fija en la parte superior */}

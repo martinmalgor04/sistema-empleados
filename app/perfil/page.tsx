@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
+
 import { 
   ArrowLeftIcon, 
   UserIcon, 
@@ -22,7 +22,6 @@ import {
   CameraIcon,
   MailIcon,
   PhoneIcon,
-  CalendarIcon,
   MapPinIcon,
   EditIcon,
   SaveIcon,
@@ -35,9 +34,7 @@ interface UserProfile {
   nombre: string
   rol: string
   telefono?: string
-  fechaNacimiento?: string
   direccion?: string
-  biografia?: string
   notificaciones?: {
     email: boolean
     push: boolean
@@ -61,9 +58,7 @@ export default function PerfilPage() {
     nombre: "",
     rol: "",
     telefono: "",
-    fechaNacimiento: "",
     direccion: "",
-    biografia: "",
     notificaciones: {
       email: true,
       push: true,
@@ -91,9 +86,7 @@ export default function PerfilPage() {
           nombre: loggedInUser.nombre,
           rol: loggedInUser.rol,
           telefono: profileData.telefono || "",
-          fechaNacimiento: profileData.fechaNacimiento || "",
           direccion: profileData.direccion || "",
-          biografia: profileData.biografia || "",
           notificaciones: profileData.notificaciones || {
             email: true,
             push: true,
@@ -345,19 +338,6 @@ export default function PerfilPage() {
                     placeholder="+54 9 11 1234-5678"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fechaNacimiento">Fecha de nacimiento</Label>
-                  <div className="flex items-center space-x-2">
-                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="fechaNacimiento"
-                      type="date"
-                      value={formData.fechaNacimiento}
-                      onChange={(e) => handleInputChange('fechaNacimiento', e.target.value)}
-                      disabled={!editMode}
-                    />
-                  </div>
-                </div>
               </div>
               
               <div className="space-y-2">
@@ -374,17 +354,7 @@ export default function PerfilPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="biografia">Biografía</Label>
-                <Textarea
-                  id="biografia"
-                  value={formData.biografia}
-                  onChange={(e) => handleInputChange('biografia', e.target.value)}
-                  disabled={!editMode}
-                  placeholder="Cuéntanos un poco sobre ti..."
-                  rows={4}
-                />
-              </div>
+
 
               <div className="space-y-2">
                 <Label>Rol</Label>
