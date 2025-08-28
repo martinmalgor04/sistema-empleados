@@ -294,11 +294,11 @@ export default function InformePresentismoPage() {
           <div className="space-y-4 mb-6">
             {/* Date Range Selector */}
             <div className="flex flex-wrap items-center gap-4">
-              <div className="flex-1">
+              <div className="w-auto">
                 <Label className="text-sm font-medium mb-2 block">Rango de fechas</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <Button variant="outline" className="w-auto justify-start text-left font-normal min-w-fit">
                       <CalendarDays className="mr-2 h-4 w-4" />
                       {formatDateRange()}
                     </Button>

@@ -599,9 +599,19 @@ export default function RegistrarCompraPage() {
               </table>
             </div>
             <div className="flex justify-between items-center mt-6">
-              <Button variant="outline" onClick={() => setPaso(paso - 1)}>
-                Volver
-              </Button>
+              <div className="flex items-center gap-4">
+                <Button variant="outline" onClick={() => setPaso(paso - 1)}>
+                  Volver
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleCancelOrder}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <XIcon className="h-4 w-4 mr-2" />
+                  Cancelar Compra
+                </Button>
+              </div>
               <div className="text-lg font-semibold">
                 Total: {formatCurrency(calcularTotal())}
               </div>
@@ -825,9 +835,19 @@ export default function RegistrarCompraPage() {
             </div>
 
             <div className="flex justify-between mt-6">
-              <Button variant="outline" onClick={() => setPaso(paso - 1)}>
-                Volver
-              </Button>
+              <div className="flex items-center gap-4">
+                <Button variant="outline" onClick={() => setPaso(paso - 1)}>
+                  Volver
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleCancelOrder}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <XIcon className="h-4 w-4 mr-2" />
+                  Cancelar Compra
+                </Button>
+              </div>
               <Button onClick={handleSiguiente}>
                 Siguiente
                 <ChevronRightIcon className="h-4 w-4 ml-2" />
@@ -880,9 +900,19 @@ export default function RegistrarCompraPage() {
             </div>
 
             <div className="flex justify-between mt-6">
-              <Button variant="outline" onClick={() => setPaso(paso - 1)}>
-                Volver
-              </Button>
+              <div className="flex items-center gap-4">
+                <Button variant="outline" onClick={() => setPaso(paso - 1)}>
+                  Volver
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleCancelOrder}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <XIcon className="h-4 w-4 mr-2" />
+                  Cancelar Compra
+                </Button>
+              </div>
               <Button onClick={handleRegistrar} className="bg-green-600 hover:bg-green-700">
                 Registrar
               </Button>
