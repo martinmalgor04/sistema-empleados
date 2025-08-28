@@ -269,14 +269,10 @@ export default function HistorialComprasPage() {
                           {getEstadoBadge(compra.estado)}
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center space-x-1">
                             <CalendarIcon className="h-4 w-4" />
                             <span>{formatDate(compra.fecha)} - {compra.hora}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <ShoppingBagIcon className="h-4 w-4" />
-                            <span>{compra.area}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <span>{compra.productos.length} productos</span>
