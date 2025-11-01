@@ -62,6 +62,9 @@ export default function RegistrarCompraPage() {
   const [newProvider, setNewProvider] = useState({ cuit: "", nombre: "", telefono: "", direccion: "" })
   const [providerSearch, setProviderSearch] = useState("")
   const [cancelDialog, setCancelDialog] = useState(false)
+  const [showProductSearchDialog, setShowProductSearchDialog] = useState(false)
+  const [productSearchTerm, setProductSearchTerm] = useState("")
+  const [selectedProductsFromSearch, setSelectedProductsFromSearch] = useState<number[]>([])
   const [datosGenerales, setDatosGenerales] = useState({
     localVendedor: "",
     fecha: "",
@@ -79,6 +82,25 @@ export default function RegistrarCompraPage() {
   const [searchTerm, setSearchTerm] = useState("")
 
   const { necesidades } = comprasData
+
+  // Productos disponibles en la base de datos (simulados)
+  const productosDisponibles = [
+    { id: 1001, nombre: "Paracetamol 500mg", categoria: "Medicamentos", area: "Farmacia", prioridad: "alta", unidad: "cajas" },
+    { id: 1002, nombre: "Ibuprofeno 400mg", categoria: "Medicamentos", area: "Farmacia", prioridad: "media", unidad: "cajas" },
+    { id: 1003, nombre: "Amoxicilina 500mg", categoria: "Medicamentos", area: "Farmacia", prioridad: "alta", unidad: "cajas" },
+    { id: 1004, nombre: "Insulina Humana", categoria: "Medicamentos", area: "Farmacia", prioridad: "alta", unidad: "viales" },
+    { id: 1005, nombre: "Jeringas 1ml", categoria: "Insumos Médicos", area: "Enfermería", prioridad: "media", unidad: "paquetes" },
+    { id: 1006, nombre: "Guantes de Látex", categoria: "Insumos Médicos", area: "Enfermería", prioridad: "baja", unidad: "cajas" },
+    { id: 1007, nombre: "Alcohol Etílico 70%", categoria: "Desinfectantes", area: "Limpieza", prioridad: "media", unidad: "botellas" },
+    { id: 1008, nombre: "Jabón Líquido", categoria: "Limpieza", area: "Limpieza", prioridad: "baja", unidad: "botellas" },
+    { id: 1009, nombre: "Papel Higiénico", categoria: "Artículos de Limpieza", area: "Limpieza", prioridad: "baja", unidad: "paquetes" },
+    { id: 1010, nombre: "Toallas de Papel", categoria: "Artículos de Limpieza", area: "Limpieza", prioridad: "baja", unidad: "paquetes" },
+    { id: 1011, nombre: "Sábanas Desechables", categoria: "Artículos Médicos", area: "Enfermería", prioridad: "media", unidad: "paquetes" },
+    { id: 1012, nombre: "Batas Quirúrgicas", categoria: "Ropa Médica", area: "Enfermería", prioridad: "media", unidad: "unidades" },
+    { id: 1013, nombre: "Mascarillas N95", categoria: "EPP", area: "Enfermería", prioridad: "alta", unidad: "cajas" },
+    { id: 1014, nombre: "Termómetros Digitales", categoria: "Equipos Médicos", area: "Enfermería", prioridad: "media", unidad: "unidades" },
+    { id: 1015, nombre: "Tensiómetros", categoria: "Equipos Médicos", area: "Enfermería", prioridad: "media", unidad: "unidades" }
+  ]
 
   // Filter and sort necesidades
   const necesidadesFiltradas = necesidades
@@ -135,10 +157,18 @@ export default function RegistrarCompraPage() {
 
   // Filter providers based on search
   const providers = proveedoresData.filter(p => p.status === 'active') as Provider[]
-  const filteredProviders = providers.filter(provider => 
+  const filteredProviders = providers.filter(provider =>
     provider.nombre.toLowerCase().includes(providerSearch.toLowerCase()) ||
     provider.cuit.includes(providerSearch)
   )
+
+  // Filter productos disponibles based on search
+  const productosFiltrados = productosDisponibles.filter(producto =>
+    producto.nombre.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+    producto.categoria.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+    producto.area.toLowerCase().includes(productSearchTerm.toLowerCase())
+  )
+
 
   const updateProductoCantidadYPrecio = (id: number, cantidad: number, precio: number) => {
     setProductosSeleccionados(productos => 
@@ -228,11 +258,76 @@ export default function RegistrarCompraPage() {
     setSelectedProvider(provider)
     setIsCreatingProvider(false)
     setNewProvider({ cuit: "", nombre: "", telefono: "", direccion: "" })
-    
+
     toast({
       title: "Proveedor creado",
       description: `${provider.nombre} ha sido seleccionado`,
     })
+  }
+
+
+  const handleToggleProductSelection = (productId: number) => {
+    setSelectedProductsFromSearch(prev =>
+      prev.includes(productId)
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    )
+  }
+
+  const handleAddSelectedProductsFromSearch = () => {
+    if (selectedProductsFromSearch.length === 0) {
+      toast({
+        title: "No hay productos seleccionados",
+        description: "Selecciona al menos un producto para agregar",
+        variant: "destructive"
+      })
+      return
+    }
+
+    const nuevosProductos: ProductoSeleccionado[] = []
+    const productosYaAgregados: string[] = []
+
+    selectedProductsFromSearch.forEach(productId => {
+      const producto = productosDisponibles.find(p => p.id === productId)
+      if (producto) {
+        // Verificar si el producto ya está en la lista principal
+        const productoExistente = productosSeleccionados.find(p => p.nombre === producto.nombre)
+        if (productoExistente) {
+          productosYaAgregados.push(producto.nombre)
+        } else {
+          const nuevoProducto: ProductoSeleccionado = {
+            id: producto.id,
+            nombre: producto.nombre,
+            categoria: producto.categoria,
+            area: producto.area,
+            prioridad: producto.prioridad,
+            cantidad_solicitada: 1, // Valor por defecto
+            unidad: producto.unidad
+          }
+          nuevosProductos.push(nuevoProducto)
+        }
+      }
+    })
+
+    if (nuevosProductos.length > 0) {
+      setProductosSeleccionados([...productosSeleccionados, ...nuevosProductos])
+      toast({
+        title: "Productos agregados",
+        description: `Se agregaron ${nuevosProductos.length} producto(s) a la lista`,
+      })
+    }
+
+    if (productosYaAgregados.length > 0) {
+      toast({
+        title: "Algunos productos ya estaban agregados",
+        description: `${productosYaAgregados.join(", ")} ya estaban en la lista`,
+        variant: "destructive"
+      })
+    }
+
+    setShowProductSearchDialog(false)
+    setProductSearchTerm("")
+    setSelectedProductsFromSearch([])
   }
 
   const handleRegistrar = () => {
@@ -343,8 +438,7 @@ export default function RegistrarCompraPage() {
           <CardHeader>
             <CardTitle>Paso 1: Selección de Productos</CardTitle>
             <CardDescription>
-              Seleccione las necesidades en estado faltante correspondientes a la compra a registrar. 
-              Use los filtros para encontrar productos específicos.
+              Seleccione productos de las necesidades existentes o busque productos adicionales en la base de datos.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -407,7 +501,7 @@ export default function RegistrarCompraPage() {
                   {/* Ordenar por */}
                   <Select value={ordenarPor} onValueChange={setOrdenarPor}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Ordenar por" />
+                      <SelectValue placeholder="Filtrar por" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="nombre">Nombre</SelectItem>
@@ -417,15 +511,7 @@ export default function RegistrarCompraPage() {
                   </Select>
                 </div>
                 
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-muted-foreground">
-                    Mostrando {necesidadesFiltradas.length} de {necesidades.length} productos
-                    {productosSeleccionados.length > 0 && (
-                      <span className="ml-2 font-medium text-primary">
-                        • {productosSeleccionados.length} seleccionados
-                      </span>
-                    )}
-                  </div>
+                <div className="flex justify-end mt-4">
                   <Button variant="outline" size="sm" onClick={resetFilters}>
                     Limpiar filtros
                   </Button>
@@ -433,37 +519,32 @@ export default function RegistrarCompraPage() {
               </CardContent>
             </Card>
 
+            {/* Banner de búsqueda adicional integrado en los filtros */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 -mx-2">
+              <div className="flex items-center justify-center gap-2 text-sm">
+                <SearchIcon className="h-4 w-4 text-blue-600" />
+                <span className="text-blue-700 font-medium">¿No encuentra lo que busca?</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowProductSearchDialog(true)
+                    setSelectedProductsFromSearch([])
+                  }}
+                  className="bg-blue-600 text-white hover:bg-blue-700 border-blue-600"
+                >
+                  <SearchIcon className="h-4 w-4 mr-2" />
+                  Buscar en base de datos completa
+                </Button>
+              </div>
+            </div>
+
             {/* Tabla de productos */}
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-3 w-12">
-                      <Checkbox
-                        checked={necesidadesFiltradas.length > 0 && necesidadesFiltradas.every(n => productosSeleccionados.some(p => p.id === n.id))}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            // Seleccionar todos los filtrados que no estén ya seleccionados
-                            const nuevosSeleccionados = necesidadesFiltradas.filter(n => 
-                              !productosSeleccionados.some(p => p.id === n.id)
-                            ).map(n => ({
-                              id: n.id,
-                              nombre: n.producto,
-                              categoria: n.categoria,
-                              area: n.area,
-                              prioridad: n.prioridad,
-                              cantidad_solicitada: n.cantidad_solicitada,
-                              unidad: n.unidad
-                            }))
-                            setProductosSeleccionados([...productosSeleccionados, ...nuevosSeleccionados])
-                          } else {
-                            // Deseleccionar todos los filtrados
-                            const idsADeseleccionar = necesidadesFiltradas.map(n => n.id)
-                            setProductosSeleccionados(productosSeleccionados.filter(p => !idsADeseleccionar.includes(p.id)))
-                          }
-                        }}
-                      />
-                    </th>
+                    <th className="text-left p-3 w-12"></th>
                     <th className="text-left p-3 font-medium">Producto</th>
                     <th className="text-left p-3 font-medium">Cant. solicitada</th>
                     <th className="text-left p-3 font-medium">Categoría</th>
@@ -475,7 +556,10 @@ export default function RegistrarCompraPage() {
                   {necesidadesFiltradas.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="text-center p-8 text-muted-foreground">
-                        No se encontraron productos con los filtros aplicados
+                        <div className="space-y-2">
+                          <p>No se encontraron productos en las necesidades con los filtros aplicados.</p>
+                          <p className="text-sm">Use la sección de búsqueda para encontrar productos adicionales en la base de datos.</p>
+                        </div>
                       </td>
                     </tr>
                   ) : (
@@ -516,6 +600,62 @@ export default function RegistrarCompraPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Productos ya seleccionados */}
+            {productosSeleccionados.length > 0 && (
+              <div className="mt-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                      <h3 className="font-medium text-green-800">
+                        Productos seleccionados ({productosSeleccionados.length})
+                      </h3>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setProductosSeleccionados([])
+                        toast({
+                          title: "Selección limpiada",
+                          description: "Todos los productos han sido removidos",
+                        })
+                      }}
+                      className="text-gray-800 border-gray-400 hover:bg-gray-100"
+                    >
+                      Limpiar todo
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {productosSeleccionados.map((producto) => (
+                      <div key={producto.id} className="flex items-center justify-between p-2 bg-white rounded border text-sm">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-green-800 truncate">{producto.nombre}</div>
+                          <div className="text-xs text-green-600 truncate">
+                            {producto.categoria} • {producto.area}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setProductosSeleccionados(productosSeleccionados.filter(p => p.id !== producto.id))
+                            toast({
+                              title: "Producto removido",
+                              description: `${producto.nombre} ha sido removido de la selección`,
+                            })
+                          }}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-1 p-1 h-auto"
+                        >
+                          <XIcon className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-between items-center mt-6">
               <Button 
@@ -944,6 +1084,96 @@ export default function RegistrarCompraPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Product Search Dialog */}
+      <Dialog open={showProductSearchDialog} onOpenChange={setShowProductSearchDialog}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <SearchIcon className="h-5 w-5 text-blue-500" />
+              Buscar Producto en Base de Datos
+            </DialogTitle>
+            <DialogDescription>
+              Busca y selecciona múltiples productos disponibles para agregar a la compra.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Search Input */}
+            <div className="relative">
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nombre, categoría o área..."
+                value={productSearchTerm}
+                onChange={(e) => setProductSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {/* Products List */}
+            <div className="max-h-96 overflow-y-auto border rounded-lg">
+              {productosFiltrados.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  {productSearchTerm ? "No se encontraron productos" : "Ingresa un término de búsqueda"}
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {productosFiltrados.map((producto) => (
+                    <div
+                      key={producto.id}
+                      className="flex items-center p-3 border-b last:border-b-0 hover:bg-muted/50 transition-colors"
+                    >
+                      <Checkbox
+                        checked={selectedProductsFromSearch.includes(producto.id)}
+                        onCheckedChange={() => handleToggleProductSelection(producto.id)}
+                        className="mr-3"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium text-sm">{producto.nombre}</h4>
+                          <Badge
+                            variant={producto.prioridad === 'alta' ? 'destructive' :
+                                   producto.prioridad === 'media' ? 'default' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {producto.prioridad}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span>Categoría: {producto.categoria}</span>
+                          <span>Área: {producto.area}</span>
+                          <span>Unidad: {producto.unidad}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          {selectedProductsFromSearch.length > 0 && (
+            <div className="text-sm text-muted-foreground">
+              {selectedProductsFromSearch.length} producto(s) seleccionado(s)
+            </div>
+          )}
+          <div className="flex justify-between items-center">
+            <Button
+              onClick={handleAddSelectedProductsFromSearch}
+              disabled={selectedProductsFromSearch.length === 0}
+            >
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Agregar ({selectedProductsFromSearch.length})
+            </Button>
+            <Button variant="outline" onClick={() => {
+              setShowProductSearchDialog(false)
+              setProductSearchTerm("")
+              setSelectedProductsFromSearch([])
+            }}>
+              Cerrar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   )
 } 
