@@ -11,8 +11,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { 
-  ArrowLeftIcon, 
+import {
+  ArrowLeftIcon,
   ChevronRightIcon,
   CheckCircleIcon,
   ShoppingCartIcon,
@@ -22,12 +22,15 @@ import {
   SearchIcon,
   XIcon,
   PlusIcon,
-  BuildingIcon
+  BuildingIcon,
+  PackageIcon,
+  UserIcon
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import comprasData from "@/data/compras.json"
 import proveedoresData from "@/data/proveedores.json"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Switch } from "@/components/ui/switch"
 
 interface ProductoSeleccionado {
   id: number
@@ -52,6 +55,79 @@ interface Provider {
   createdAt?: string
 }
 
+const categoriasProductos = [
+  { value: "lacteos", label: "Lácteos" },
+  { value: "panaderia", label: "Panadería" },
+  { value: "carnes", label: "Carnes" },
+  { value: "verduras", label: "Verduras" },
+  { value: "frutas", label: "Frutas" },
+  { value: "bebidas", label: "Bebidas" },
+  { value: "higiene", label: "Higiene" },
+  { value: "limpieza", label: "Limpieza" },
+  { value: "despensa", label: "Despensa" },
+  { value: "otros", label: "Otros" }
+]
+
+const tiposProductos = [
+  { value: "alimento", label: "Alimento" },
+  { value: "bebida", label: "Bebida" },
+  { value: "higiene_personal", label: "Higiene Personal" },
+  { value: "limpieza", label: "Producto de Limpieza" },
+  { value: "insumo", label: "Insumo Médico" },
+  { value: "otro", label: "Otro" }
+]
+
+const proveedoresDisponibles = [
+  {
+    id: 1,
+    nombre: "Distribuidora Láctea del Valle",
+    telefono: "5555555555",
+    email: "ventas@lacteavalley.com"
+  },
+  {
+    id: 2,
+    nombre: "Alimentos Frescos SA",
+    telefono: "4444444444",
+    email: "info@alimentosfrescos.com"
+  },
+  {
+    id: 3,
+    nombre: "Panadería Artesanal",
+    telefono: "3333333333",
+    email: "contacto@panartesanal.com"
+  },
+  {
+    id: 4,
+    nombre: "Productos de Limpieza SA",
+    telefono: "2222222222",
+    email: "ventas@limpiezasa.com"
+  },
+  {
+    id: 5,
+    nombre: "Productos Médicos Plus",
+    telefono: "1111111111",
+    email: "ventas@medplus.com"
+  },
+  {
+    id: 6,
+    nombre: "Farmacéutica San Juan",
+    telefono: "9999999999",
+    email: "contacto@farmasanjuan.com"
+  },
+  {
+    id: 7,
+    nombre: "Distribuidora Med Plus",
+    telefono: "8888888888",
+    email: "ventas@medplus.com"
+  },
+  {
+    id: 8,
+    nombre: "Pharma Distributors",
+    telefono: "7777777777",
+    email: "info@pharmadist.com"
+  }
+]
+
 export default function RegistrarCompraPage() {
   const router = useRouter()
   const { toast } = useToast()
@@ -65,6 +141,41 @@ export default function RegistrarCompraPage() {
   const [showProductSearchDialog, setShowProductSearchDialog] = useState(false)
   const [productSearchTerm, setProductSearchTerm] = useState("")
   const [selectedProductsFromSearch, setSelectedProductsFromSearch] = useState<number[]>([])
+  const [showAddProductModal, setShowAddProductModal] = useState(false)
+  const [showCreateProductModal, setShowCreateProductModal] = useState(false)
+  const [showCreateMedicationModal, setShowCreateMedicationModal] = useState(false)
+
+  // Estados para formulario de producto
+  const [newProduct, setNewProduct] = useState({
+    nombre: "",
+    categoria: "",
+    tipo: "",
+    cantidad: "",
+    costo: "",
+    stockMinimo: "",
+    descripcion: "",
+    perecedero: false,
+    fechaCaducidadDias: "",
+    temperaturaAlmacenamiento: "ambiente",
+    codigoBarras: "",
+    proveedorSeleccionado: null as typeof proveedoresDisponibles[0] | null
+  })
+
+  // Estados para formulario de medicamento
+  const [newMedication, setNewMedication] = useState({
+    nombre: "",
+    cantidad: "",
+    costo: "",
+    stockMinimo: "",
+    descripcion: "",
+    proveedorSeleccionado: null as typeof proveedoresDisponibles[0] | null
+  })
+
+  const [productProviderSearch, setProductProviderSearch] = useState("")
+  const [medicationProviderSearch, setMedicationProviderSearch] = useState("")
+  const [showProductProviderDialog, setShowProductProviderDialog] = useState(false)
+  const [showMedicationProviderDialog, setShowMedicationProviderDialog] = useState(false)
+
   const [datosGenerales, setDatosGenerales] = useState({
     localVendedor: "",
     fecha: "",
@@ -109,7 +220,7 @@ export default function RegistrarCompraPage() {
       const matchesCategoria = filtroCategoria === "todas" || necesidad.categoria === filtroCategoria
       const matchesArea = filtroArea === "todas" || necesidad.area === filtroArea
       const matchesPrioridad = filtroPrioridad === "todas" || necesidad.prioridad === filtroPrioridad
-      
+
       return matchesSearch && matchesCategoria && matchesArea && matchesPrioridad
     })
     .sort((a, b) => {
@@ -118,8 +229,8 @@ export default function RegistrarCompraPage() {
           return b.cantidad_solicitada - a.cantidad_solicitada
         case "prioridad":
           const prioridadOrder = { "alta": 3, "media": 2, "baja": 1 }
-          return (prioridadOrder[b.prioridad as keyof typeof prioridadOrder] || 0) - 
-                 (prioridadOrder[a.prioridad as keyof typeof prioridadOrder] || 0)
+          return (prioridadOrder[b.prioridad as keyof typeof prioridadOrder] || 0) -
+            (prioridadOrder[a.prioridad as keyof typeof prioridadOrder] || 0)
         case "nombre":
         default:
           return a.producto.localeCompare(b.producto)
@@ -169,11 +280,21 @@ export default function RegistrarCompraPage() {
     producto.area.toLowerCase().includes(productSearchTerm.toLowerCase())
   )
 
+  // Filter proveedores para productos
+  const productProvidersFiltrados = proveedoresDisponibles.filter(proveedor =>
+    proveedor.nombre.toLowerCase().includes(productProviderSearch.toLowerCase())
+  )
+
+  // Filter proveedores para medicamentos
+  const medicationProvidersFiltrados = proveedoresDisponibles.filter(proveedor =>
+    proveedor.nombre.toLowerCase().includes(medicationProviderSearch.toLowerCase())
+  )
+
 
   const updateProductoCantidadYPrecio = (id: number, cantidad: number, precio: number) => {
-    setProductosSeleccionados(productos => 
-      productos.map(p => 
-        p.id === id 
+    setProductosSeleccionados(productos =>
+      productos.map(p =>
+        p.id === id
           ? { ...p, cantidad_comprada: cantidad, precio_unitario: precio, subtotal: cantidad * precio }
           : p
       )
@@ -195,7 +316,7 @@ export default function RegistrarCompraPage() {
     }
     if (paso === 2 && productosSeleccionados.some(p => !p.cantidad_comprada || !p.precio_unitario)) {
       toast({
-        title: "Error", 
+        title: "Error",
         description: "Completa cantidad y precio para todos los productos",
         variant: "destructive"
       })
@@ -352,6 +473,80 @@ export default function RegistrarCompraPage() {
     }
   }
 
+  // Funciones para productos
+  const handleProductProviderSelect = (proveedor: typeof proveedoresDisponibles[0]) => {
+    setNewProduct({ ...newProduct, proveedorSeleccionado: proveedor })
+    setShowProductProviderDialog(false)
+    setProductProviderSearch("")
+  }
+
+  const handleSaveProduct = () => {
+    if (!newProduct.nombre || !newProduct.categoria || !newProduct.tipo || !newProduct.cantidad || !newProduct.costo || !newProduct.proveedorSeleccionado) {
+      toast({
+        title: "Error",
+        description: "Por favor completa todos los campos obligatorios.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    toast({
+      title: "Producto agregado",
+      description: `${newProduct.nombre} se ha agregado correctamente al inventario.`,
+    })
+
+    // Reset form
+    setNewProduct({
+      nombre: "",
+      categoria: "",
+      tipo: "",
+      cantidad: "",
+      costo: "",
+      stockMinimo: "",
+      descripcion: "",
+      perecedero: false,
+      fechaCaducidadDias: "",
+      temperaturaAlmacenamiento: "ambiente",
+      codigoBarras: "",
+      proveedorSeleccionado: null
+    })
+    setShowCreateProductModal(false)
+  }
+
+  // Funciones para medicamentos
+  const handleMedicationProviderSelect = (proveedor: typeof proveedoresDisponibles[0]) => {
+    setNewMedication({ ...newMedication, proveedorSeleccionado: proveedor })
+    setShowMedicationProviderDialog(false)
+    setMedicationProviderSearch("")
+  }
+
+  const handleSaveMedication = () => {
+    if (!newMedication.nombre || !newMedication.cantidad || !newMedication.costo || !newMedication.proveedorSeleccionado) {
+      toast({
+        title: "Error",
+        description: "Por favor completa todos los campos obligatorios.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    toast({
+      title: "Medicamento agregado",
+      description: `${newMedication.nombre} se ha agregado correctamente al inventario.`,
+    })
+
+    // Reset form
+    setNewMedication({
+      nombre: "",
+      cantidad: "",
+      costo: "",
+      stockMinimo: "",
+      descripcion: "",
+      proveedorSeleccionado: null
+    })
+    setShowCreateMedicationModal(false)
+  }
+
   if (paso === 5) {
     return (
       <div className="container mx-auto p-4">
@@ -415,13 +610,12 @@ export default function RegistrarCompraPage() {
       <div className="flex items-center justify-center space-x-2 mb-6">
         {[1, 2, 3, 4].map((stepNumber) => (
           <div key={stepNumber} className="flex items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              stepNumber === paso 
-                ? 'bg-primary text-primary-foreground' 
-                : stepNumber < paso 
-                  ? 'bg-green-500 text-white' 
-                  : 'bg-muted text-muted-foreground'
-            }`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${stepNumber === paso
+              ? 'bg-primary text-primary-foreground'
+              : stepNumber < paso
+                ? 'bg-green-500 text-white'
+                : 'bg-muted text-muted-foreground'
+              }`}>
               {stepNumber < paso ? <CheckCircleIcon className="h-5 w-5" /> : stepNumber}
             </div>
             {stepNumber < 4 && (
@@ -510,7 +704,7 @@ export default function RegistrarCompraPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="flex justify-end mt-4">
                   <Button variant="outline" size="sm" onClick={resetFilters}>
                     Limpiar filtros
@@ -586,9 +780,9 @@ export default function RegistrarCompraPage() {
                           <span className="text-sm">{necesidad.area}</span>
                         </td>
                         <td className="p-3">
-                          <Badge 
-                            variant={necesidad.prioridad === 'alta' ? 'destructive' : 
-                                   necesidad.prioridad === 'media' ? 'default' : 'secondary'}
+                          <Badge
+                            variant={necesidad.prioridad === 'alta' ? 'destructive' :
+                              necesidad.prioridad === 'media' ? 'default' : 'secondary'}
                             className="text-xs"
                           >
                             {necesidad.prioridad.charAt(0).toUpperCase() + necesidad.prioridad.slice(1)}
@@ -658,8 +852,8 @@ export default function RegistrarCompraPage() {
             )}
 
             <div className="flex justify-between items-center mt-6">
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 onClick={handleCancelOrder}
                 className="bg-red-600 hover:bg-red-700"
               >
@@ -743,8 +937,8 @@ export default function RegistrarCompraPage() {
                 <Button variant="outline" onClick={() => setPaso(paso - 1)}>
                   Volver
                 </Button>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   onClick={handleCancelOrder}
                   className="bg-red-600 hover:bg-red-700"
                 >
@@ -774,7 +968,7 @@ export default function RegistrarCompraPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <Label>Proveedor:</Label>
-                
+
                 {/* Selected Provider Display */}
                 {selectedProvider ? (
                   <Card className="bg-green-50 border-green-200">
@@ -798,7 +992,7 @@ export default function RegistrarCompraPage() {
                   <div className="space-y-3">
                     {/* Toggle buttons */}
                     <div className="flex items-center justify-center space-x-2">
-                      <Button 
+                      <Button
                         variant={!isCreatingProvider ? "default" : "outline"}
                         size="sm"
                         onClick={() => setIsCreatingProvider(false)}
@@ -806,7 +1000,7 @@ export default function RegistrarCompraPage() {
                         Seleccionar Existente
                       </Button>
                       <span className="text-muted-foreground text-sm">o</span>
-                      <Button 
+                      <Button
                         variant={isCreatingProvider ? "default" : "outline"}
                         size="sm"
                         onClick={() => setIsCreatingProvider(true)}
@@ -826,10 +1020,9 @@ export default function RegistrarCompraPage() {
                             value={providerSearch}
                             onChange={(e) => setProviderSearch(e.target.value)}
                             className="pl-7 text-sm"
-                            size="sm"
                           />
                         </div>
-                        
+
                         <div className="space-y-1 max-h-40 overflow-y-auto">
                           {filteredProviders.length === 0 ? (
                             <div className="text-center py-4 text-muted-foreground text-xs">
@@ -837,9 +1030,9 @@ export default function RegistrarCompraPage() {
                             </div>
                           ) : (
                             filteredProviders.map((provider) => (
-                              <div 
-                                key={provider.id} 
-                                className="p-2 border rounded cursor-pointer hover:bg-muted/50 transition-colors" 
+                              <div
+                                key={provider.id}
+                                className="p-2 border rounded cursor-pointer hover:bg-muted/50 transition-colors"
                                 onClick={() => setSelectedProvider(provider)}
                               >
                                 <div className="flex items-center justify-between">
@@ -866,25 +1059,25 @@ export default function RegistrarCompraPage() {
                           <Input
                             placeholder="CUIT (XX-XXXXXXXX-X)"
                             value={newProvider.cuit}
-                            onChange={(e) => setNewProvider({...newProvider, cuit: e.target.value})}
+                            onChange={(e) => setNewProvider({ ...newProvider, cuit: e.target.value })}
                             className="text-sm"
                           />
                           <Input
                             placeholder="Nombre del proveedor"
                             value={newProvider.nombre}
-                            onChange={(e) => setNewProvider({...newProvider, nombre: e.target.value})}
+                            onChange={(e) => setNewProvider({ ...newProvider, nombre: e.target.value })}
                             className="text-sm"
                           />
                           <Input
                             placeholder="Teléfono"
                             value={newProvider.telefono}
-                            onChange={(e) => setNewProvider({...newProvider, telefono: e.target.value})}
+                            onChange={(e) => setNewProvider({ ...newProvider, telefono: e.target.value })}
                             className="text-sm"
                           />
                           <Input
                             placeholder="Dirección"
                             value={newProvider.direccion}
-                            onChange={(e) => setNewProvider({...newProvider, direccion: e.target.value})}
+                            onChange={(e) => setNewProvider({ ...newProvider, direccion: e.target.value })}
                             className="text-sm"
                           />
                         </div>
@@ -904,7 +1097,7 @@ export default function RegistrarCompraPage() {
                     id="fecha"
                     type="date"
                     value={datosGenerales.fecha}
-                    onChange={(e) => setDatosGenerales({...datosGenerales, fecha: e.target.value})}
+                    onChange={(e) => setDatosGenerales({ ...datosGenerales, fecha: e.target.value })}
                   />
                   <CalendarIcon className="h-5 w-5 text-muted-foreground" />
                 </div>
@@ -916,7 +1109,7 @@ export default function RegistrarCompraPage() {
                     id="hora"
                     type="time"
                     value={datosGenerales.hora}
-                    onChange={(e) => setDatosGenerales({...datosGenerales, hora: e.target.value})}
+                    onChange={(e) => setDatosGenerales({ ...datosGenerales, hora: e.target.value })}
                   />
                   <ClockIcon className="h-5 w-5 text-muted-foreground" />
                 </div>
@@ -925,9 +1118,9 @@ export default function RegistrarCompraPage() {
 
             <div className="space-y-4">
               <Label>Estado:</Label>
-              <RadioGroup 
-                value={datosGenerales.estado} 
-                onValueChange={(value: "recibida" | "pendiente") => setDatosGenerales({...datosGenerales, estado: value})}
+              <RadioGroup
+                value={datosGenerales.estado}
+                onValueChange={(value: "recibida" | "pendiente") => setDatosGenerales({ ...datosGenerales, estado: value })}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="recibida" id="recibida" />
@@ -946,7 +1139,7 @@ export default function RegistrarCompraPage() {
                     id="fechaEntrega"
                     type="date"
                     value={datosGenerales.fechaEntrega}
-                    onChange={(e) => setDatosGenerales({...datosGenerales, fechaEntrega: e.target.value})}
+                    onChange={(e) => setDatosGenerales({ ...datosGenerales, fechaEntrega: e.target.value })}
                   />
                 </div>
               )}
@@ -965,7 +1158,7 @@ export default function RegistrarCompraPage() {
                 <label htmlFor="comprobante" className="cursor-pointer">
                   <UploadIcon className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                   <p className="text-sm text-muted-foreground">
-                    {datosGenerales.comprobante 
+                    {datosGenerales.comprobante
                       ? `Archivo: ${datosGenerales.comprobante.name}`
                       : "Haz clic para subir comprobante"
                     }
@@ -979,8 +1172,8 @@ export default function RegistrarCompraPage() {
                 <Button variant="outline" onClick={() => setPaso(paso - 1)}>
                   Volver
                 </Button>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   onClick={handleCancelOrder}
                   className="bg-red-600 hover:bg-red-700"
                 >
@@ -1003,7 +1196,7 @@ export default function RegistrarCompraPage() {
           <CardHeader>
             <CardTitle>Paso 4: Confirmar registro</CardTitle>
             <CardDescription>
-              A continuación se muestra un resumen de la compra. Revise los detalles y seleccione 
+              A continuación se muestra un resumen de la compra. Revise los detalles y seleccione
               <span className="text-red-600 font-medium"> Registrar</span> para registrarla
             </CardDescription>
           </CardHeader>
@@ -1044,8 +1237,8 @@ export default function RegistrarCompraPage() {
                 <Button variant="outline" onClick={() => setPaso(paso - 1)}>
                   Volver
                 </Button>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   onClick={handleCancelOrder}
                   className="bg-red-600 hover:bg-red-700"
                 >
@@ -1132,7 +1325,7 @@ export default function RegistrarCompraPage() {
                           <h4 className="font-medium text-sm">{producto.nombre}</h4>
                           <Badge
                             variant={producto.prioridad === 'alta' ? 'destructive' :
-                                   producto.prioridad === 'media' ? 'default' : 'secondary'}
+                              producto.prioridad === 'media' ? 'default' : 'secondary'}
                             className="text-xs"
                           >
                             {producto.prioridad}
@@ -1161,14 +1354,475 @@ export default function RegistrarCompraPage() {
               disabled={selectedProductsFromSearch.length === 0}
             >
               <PlusIcon className="h-4 w-4 mr-2" />
-              Agregar ({selectedProductsFromSearch.length})
+              Seleccionar ({selectedProductsFromSearch.length})
             </Button>
-            <Button variant="outline" onClick={() => {
-              setShowProductSearchDialog(false)
-              setProductSearchTerm("")
-              setSelectedProductsFromSearch([])
-            }}>
-              Cerrar
+            <div className="flex items-center gap-2">
+              <Button onClick={() => setShowAddProductModal(true)}>
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Nuevo Producto
+              </Button>
+              <Button variant="outline" onClick={() => {
+                setShowProductSearchDialog(false)
+                setProductSearchTerm("")
+                setSelectedProductsFromSearch([])
+              }}>
+                Cerrar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Product Modal */}
+      <Dialog open={showAddProductModal} onOpenChange={setShowAddProductModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PlusIcon className="h-5 w-5 text-blue-500" />
+              Agregar Nuevo Producto
+            </DialogTitle>
+            <DialogDescription>
+              Selecciona el tipo de producto que deseas agregar al sistema.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <Button
+              variant="outline"
+              className="h-24 flex flex-col items-center justify-center gap-2"
+              onClick={() => {
+                setShowAddProductModal(false)
+                setShowCreateProductModal(true)
+              }}
+            >
+              <ShoppingCartIcon className="h-8 w-8 text-blue-500" />
+              <span className="text-sm font-medium">Producto</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-24 flex flex-col items-center justify-center gap-2"
+              onClick={() => {
+                setShowAddProductModal(false)
+                setShowCreateMedicationModal(true)
+              }}
+            >
+              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                <span className="text-green-600 font-bold text-sm">Rx</span>
+              </div>
+              <span className="text-sm font-medium">Medicamento</span>
+            </Button>
+          </div>
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setShowAddProductModal(false)}>
+              Cancelar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Product Modal */}
+      <Dialog open={showCreateProductModal} onOpenChange={setShowCreateProductModal}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PackageIcon className="h-5 w-5 text-blue-500" />
+              Agregar Nuevo Producto
+            </DialogTitle>
+            <DialogDescription>
+              Completa la información del nuevo producto para agregarlo al inventario.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {/* Nombre */}
+            <div className="space-y-2">
+              <Label htmlFor="product-nombre">Nombre *</Label>
+              <Input
+                id="product-nombre"
+                placeholder="Nombre del producto"
+                value={newProduct.nombre}
+                onChange={(e) => setNewProduct({ ...newProduct, nombre: e.target.value })}
+              />
+            </div>
+
+            {/* Categoría y Tipo */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Categoría *</Label>
+                <Select value={newProduct.categoria} onValueChange={(value) => setNewProduct({ ...newProduct, categoria: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoriasProductos.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Tipo *</Label>
+                <Select value={newProduct.tipo} onValueChange={(value) => setNewProduct({ ...newProduct, tipo: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tiposProductos.map((tipo) => (
+                      <SelectItem key={tipo.value} value={tipo.value}>
+                        {tipo.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Cantidad y Costo */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="product-cantidad">Cantidad inicial *</Label>
+                <Input
+                  id="product-cantidad"
+                  placeholder="99999"
+                  type="number"
+                  value={newProduct.cantidad}
+                  onChange={(e) => setNewProduct({ ...newProduct, cantidad: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="product-costo">Costo unitario *</Label>
+                <Input
+                  id="product-costo"
+                  placeholder="99999.99"
+                  type="number"
+                  step="0.01"
+                  value={newProduct.costo}
+                  onChange={(e) => setNewProduct({ ...newProduct, costo: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {/* Stock mínimo */}
+            <div className="space-y-2">
+              <Label htmlFor="product-stock-minimo">Stock mínimo</Label>
+              <Input
+                id="product-stock-minimo"
+                placeholder="20"
+                type="number"
+                value={newProduct.stockMinimo}
+                onChange={(e) => setNewProduct({ ...newProduct, stockMinimo: e.target.value })}
+              />
+            </div>
+
+            {/* Descripción */}
+            <div className="space-y-2">
+              <Label htmlFor="product-descripcion">Descripción</Label>
+              <Textarea
+                id="product-descripcion"
+                placeholder="Descripción del producto..."
+                value={newProduct.descripcion}
+                onChange={(e) => setNewProduct({ ...newProduct, descripcion: e.target.value })}
+                rows={3}
+              />
+            </div>
+
+            {/* Código de barras */}
+            <div className="space-y-2">
+              <Label htmlFor="product-codigo-barras">Código de barras</Label>
+              <Input
+                id="product-codigo-barras"
+                placeholder="1234567890123"
+                value={newProduct.codigoBarras}
+                onChange={(e) => setNewProduct({ ...newProduct, codigoBarras: e.target.value })}
+              />
+            </div>
+
+            {/* Perecedero */}
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="product-perecedero"
+                checked={newProduct.perecedero}
+                onCheckedChange={(checked) => setNewProduct({ ...newProduct, perecedero: checked })}
+              />
+              <Label htmlFor="product-perecedero">Producto perecedero</Label>
+            </div>
+
+            {/* Campos específicos para perecederos */}
+            {newProduct.perecedero && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="product-fecha-caducidad">Días para caducar</Label>
+                  <Input
+                    id="product-fecha-caducidad"
+                    placeholder="30"
+                    type="number"
+                    value={newProduct.fechaCaducidadDias}
+                    onChange={(e) => setNewProduct({ ...newProduct, fechaCaducidadDias: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="product-temperatura">Temperatura de almacenamiento</Label>
+                  <Select value={newProduct.temperaturaAlmacenamiento} onValueChange={(value) => setNewProduct({ ...newProduct, temperaturaAlmacenamiento: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar temperatura" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ambiente">Ambiente</SelectItem>
+                      <SelectItem value="refrigerado">Refrigerado (2-6°C)</SelectItem>
+                      <SelectItem value="congelado">Congelado (-18°C)</SelectItem>
+                      <SelectItem value="fresco">Fresco (0-4°C)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
+            {/* Proveedor */}
+            <div className="space-y-2">
+              <Label>Proveedor *</Label>
+              <Dialog open={showProductProviderDialog} onOpenChange={setShowProductProviderDialog}>
+                <DialogTrigger asChild>
+                  <div className="relative">
+                    <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar proveedor"
+                      value={newProduct.proveedorSeleccionado?.nombre || ""}
+                      readOnly
+                      className="pl-10 cursor-pointer"
+                    />
+                  </div>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Seleccionar proveedor</DialogTitle>
+                    <DialogDescription>
+                      Busca y selecciona un proveedor de la lista.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar proveedores..."
+                        value={productProviderSearch}
+                        onChange={(e) => setProductProviderSearch(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {productProvidersFiltrados.map((proveedor) => (
+                        <div
+                          key={proveedor.id}
+                          className="flex items-center space-x-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleProductProviderSelect(proveedor)}
+                        >
+                          <div className="h-8 w-8 bg-muted rounded-full flex items-center justify-center">
+                            <UserIcon className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium">{proveedor.nombre}</p>
+                            <p className="text-sm text-muted-foreground">{proveedor.email}</p>
+                          </div>
+                        </div>
+                      ))}
+                      {productProvidersFiltrados.length === 0 && (
+                        <p className="text-center text-muted-foreground py-4">
+                          No se encontraron proveedores
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Proveedor seleccionado */}
+            {newProduct.proveedorSeleccionado && (
+              <Card className="bg-muted/50">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-10 w-10 bg-muted rounded-full flex items-center justify-center">
+                      <UserIcon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{newProduct.proveedorSeleccionado.nombre}</p>
+                      <p className="text-sm text-muted-foreground">{newProduct.proveedorSeleccionado.telefono}</p>
+                      <p className="text-sm text-muted-foreground">{newProduct.proveedorSeleccionado.email}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setShowCreateProductModal(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveProduct}>
+              Guardar Producto
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Medication Modal */}
+      <Dialog open={showCreateMedicationModal} onOpenChange={setShowCreateMedicationModal}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="h-5 w-5 rounded-full bg-green-100 flex items-center justify-center">
+                <span className="text-green-600 font-bold text-xs">Rx</span>
+              </div>
+              Agregar Nuevo Medicamento
+            </DialogTitle>
+            <DialogDescription>
+              Completa la información del nuevo medicamento para agregarlo al inventario.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {/* Nombre */}
+            <div className="space-y-2">
+              <Label htmlFor="medication-nombre">Nombre *</Label>
+              <Input
+                id="medication-nombre"
+                placeholder="Nombre del medicamento"
+                value={newMedication.nombre}
+                onChange={(e) => setNewMedication({ ...newMedication, nombre: e.target.value })}
+              />
+            </div>
+
+            {/* Cantidad y Costo */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="medication-cantidad">Cantidad inicial *</Label>
+                <Input
+                  id="medication-cantidad"
+                  placeholder="99999"
+                  type="number"
+                  value={newMedication.cantidad}
+                  onChange={(e) => setNewMedication({ ...newMedication, cantidad: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="medication-costo">Costo unitario *</Label>
+                <Input
+                  id="medication-costo"
+                  placeholder="99999.99"
+                  type="number"
+                  step="0.01"
+                  value={newMedication.costo}
+                  onChange={(e) => setNewMedication({ ...newMedication, costo: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {/* Stock mínimo */}
+            <div className="space-y-2">
+              <Label htmlFor="medication-stock-minimo">Stock mínimo</Label>
+              <Input
+                id="medication-stock-minimo"
+                placeholder="20"
+                type="number"
+                value={newMedication.stockMinimo}
+                onChange={(e) => setNewMedication({ ...newMedication, stockMinimo: e.target.value })}
+              />
+            </div>
+
+            {/* Descripción */}
+            <div className="space-y-2">
+              <Label htmlFor="medication-descripcion">Descripción</Label>
+              <Textarea
+                id="medication-descripcion"
+                placeholder="Descripción del medicamento..."
+                value={newMedication.descripcion}
+                onChange={(e) => setNewMedication({ ...newMedication, descripcion: e.target.value })}
+                rows={3}
+              />
+            </div>
+
+            {/* Proveedor */}
+            <div className="space-y-2">
+              <Label>Proveedor *</Label>
+              <Dialog open={showMedicationProviderDialog} onOpenChange={setShowMedicationProviderDialog}>
+                <DialogTrigger asChild>
+                  <div className="relative">
+                    <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar proveedor"
+                      value={newMedication.proveedorSeleccionado?.nombre || ""}
+                      readOnly
+                      className="pl-10 cursor-pointer"
+                    />
+                  </div>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Seleccionar proveedor</DialogTitle>
+                    <DialogDescription>
+                      Busca y selecciona un proveedor de la lista.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar proveedores..."
+                        value={medicationProviderSearch}
+                        onChange={(e) => setMedicationProviderSearch(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {medicationProvidersFiltrados.map((proveedor) => (
+                        <div
+                          key={proveedor.id}
+                          className="flex items-center space-x-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleMedicationProviderSelect(proveedor)}
+                        >
+                          <div className="h-8 w-8 bg-muted rounded-full flex items-center justify-center">
+                            <UserIcon className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium">{proveedor.nombre}</p>
+                            <p className="text-sm text-muted-foreground">{proveedor.email}</p>
+                          </div>
+                        </div>
+                      ))}
+                      {medicationProvidersFiltrados.length === 0 && (
+                        <p className="text-center text-muted-foreground py-4">
+                          No se encontraron proveedores
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Proveedor seleccionado */}
+            {newMedication.proveedorSeleccionado && (
+              <Card className="bg-muted/50">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-10 w-10 bg-muted rounded-full flex items-center justify-center">
+                      <UserIcon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{newMedication.proveedorSeleccionado.nombre}</p>
+                      <p className="text-sm text-muted-foreground">{newMedication.proveedorSeleccionado.telefono}</p>
+                      <p className="text-sm text-muted-foreground">{newMedication.proveedorSeleccionado.email}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setShowCreateMedicationModal(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveMedication}>
+              Guardar Medicamento
             </Button>
           </div>
         </DialogContent>
