@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import {
   ArrowLeftIcon,
   ShareIcon,
@@ -68,14 +67,6 @@ const categoriasProductos = [
   { value: "otros", label: "Otros" }
 ]
 
-const tiposProductos = [
-  { value: "alimento", label: "Alimento" },
-  { value: "bebida", label: "Bebida" },
-  { value: "higiene_personal", label: "Higiene Personal" },
-  { value: "limpieza", label: "Producto de Limpieza" },
-  { value: "insumo", label: "Insumo Médico" },
-  { value: "otro", label: "Otro" }
-]
 
 export default function AgregarProductoPage() {
   const router = useRouter()
@@ -83,18 +74,11 @@ export default function AgregarProductoPage() {
 
   const [nombre, setNombre] = useState("")
   const [categoria, setCategoria] = useState("")
-  const [tipo, setTipo] = useState("")
-  const [cantidad, setCantidad] = useState("")
-  const [costo, setCosto] = useState("")
   const [stockMinimo, setStockMinimo] = useState("")
   const [descripcion, setDescripcion] = useState("")
   const [proveedorSeleccionado, setProveedorSeleccionado] = useState<typeof proveedoresDisponibles[0] | null>(null)
   const [busquedaProveedor, setBusquedaProveedor] = useState("")
   const [showProveedorDialog, setShowProveedorDialog] = useState(false)
-  const [perecedero, setPerecedero] = useState(false)
-  const [fechaCaducidadDias, setFechaCaducidadDias] = useState("")
-  const [temperaturaAlmacenamiento, setTemperaturaAlmacenamiento] = useState("ambiente")
-  const [codigoBarras, setCodigoBarras] = useState("")
 
   const proveedoresFiltrados = proveedoresDisponibles.filter(proveedor =>
     proveedor.nombre.toLowerCase().includes(busquedaProveedor.toLowerCase())
@@ -114,7 +98,7 @@ export default function AgregarProductoPage() {
   }
 
   const handleGuardar = () => {
-    if (!nombre || !categoria || !tipo || !cantidad || !costo || !proveedorSeleccionado) {
+    if (!nombre || !categoria || !proveedorSeleccionado) {
       toast({
         title: "Error",
         description: "Por favor completa todos los campos obligatorios.",
@@ -187,64 +171,23 @@ export default function AgregarProductoPage() {
             />
           </div>
 
-          {/* Categoría y Tipo */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Categoría *</Label>
-              <Select value={categoria} onValueChange={setCategoria}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoriasProductos.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Tipo *</Label>
-              <Select value={tipo} onValueChange={setTipo}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tiposProductos.map((tipo) => (
-                    <SelectItem key={tipo.value} value={tipo.value}>
-                      {tipo.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Categoría */}
+          <div className="space-y-2">
+            <Label>Categoría *</Label>
+            <Select value={categoria} onValueChange={setCategoria}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                {categoriasProductos.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Cantidad y Costo */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="cantidad">Cantidad inicial *</Label>
-              <Input
-                id="cantidad"
-                placeholder="99999"
-                type="number"
-                value={cantidad}
-                onChange={(e) => setCantidad(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="costo">Costo unitario *</Label>
-              <Input
-                id="costo"
-                placeholder="99999.99"
-                type="number"
-                step="0.01"
-                value={costo}
-                onChange={(e) => setCosto(e.target.value)}
-              />
-            </div>
-          </div>
 
           {/* Stock mínimo */}
           <div className="space-y-2">
@@ -270,56 +213,8 @@ export default function AgregarProductoPage() {
             />
           </div>
 
-          {/* Código de barras */}
-          <div className="space-y-2">
-            <Label htmlFor="codigo-barras">Código de barras</Label>
-            <Input
-              id="codigo-barras"
-              placeholder="1234567890123"
-              value={codigoBarras}
-              onChange={(e) => setCodigoBarras(e.target.value)}
-            />
-          </div>
 
-          {/* Perecedero */}
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="perecedero"
-              checked={perecedero}
-              onCheckedChange={setPerecedero}
-            />
-            <Label htmlFor="perecedero">Producto perecedero</Label>
-          </div>
 
-          {/* Campos específicos para perecederos */}
-          {perecedero && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="fecha-caducidad">Días para caducar</Label>
-                <Input
-                  id="fecha-caducidad"
-                  placeholder="30"
-                  type="number"
-                  value={fechaCaducidadDias}
-                  onChange={(e) => setFechaCaducidadDias(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="temperatura">Temperatura de almacenamiento</Label>
-                <Select value={temperaturaAlmacenamiento} onValueChange={setTemperaturaAlmacenamiento}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar temperatura" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ambiente">Ambiente</SelectItem>
-                    <SelectItem value="refrigerado">Refrigerado (2-6°C)</SelectItem>
-                    <SelectItem value="congelado">Congelado (-18°C)</SelectItem>
-                    <SelectItem value="fresco">Fresco (0-4°C)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          )}
 
           {/* Proveedor */}
           <div className="space-y-2">

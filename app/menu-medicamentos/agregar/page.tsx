@@ -46,8 +46,6 @@ export default function AgregarMedicamentoPage() {
   const { toast } = useToast()
   
   const [nombre, setNombre] = useState("")
-  const [cantidad, setCantidad] = useState("")
-  const [costo, setCosto] = useState("")
   const [stockMinimo, setStockMinimo] = useState("")
   const [descripcion, setDescripcion] = useState("")
   const [proveedorSeleccionado, setProveedorSeleccionado] = useState<typeof proveedoresDisponibles[0] | null>(null)
@@ -72,7 +70,7 @@ export default function AgregarMedicamentoPage() {
   }
 
   const handleGuardar = () => {
-    if (!nombre || !cantidad || !costo || !proveedorSeleccionado) {
+    if (!nombre || !proveedorSeleccionado) {
       toast({
         title: "Error",
         description: "Por favor completa todos los campos obligatorios.",
@@ -145,29 +143,6 @@ export default function AgregarMedicamentoPage() {
             />
           </div>
 
-          {/* Cantidad y Costo */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="cantidad">Cantidad</Label>
-              <Input
-                id="cantidad"
-                placeholder="99999"
-                type="number"
-                value={cantidad}
-                onChange={(e) => setCantidad(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="costo">Costo</Label>
-              <Input
-                id="costo"
-                placeholder="99999"
-                type="number"
-                value={costo}
-                onChange={(e) => setCosto(e.target.value)}
-              />
-            </div>
-          </div>
 
           {/* Stock mínimo */}
           <div className="space-y-2">

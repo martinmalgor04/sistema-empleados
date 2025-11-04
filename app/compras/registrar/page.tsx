@@ -30,7 +30,6 @@ import { useToast } from "@/components/ui/use-toast"
 import comprasData from "@/data/compras.json"
 import proveedoresData from "@/data/proveedores.json"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Switch } from "@/components/ui/switch"
 
 interface ProductoSeleccionado {
   id: number
@@ -68,14 +67,6 @@ const categoriasProductos = [
   { value: "otros", label: "Otros" }
 ]
 
-const tiposProductos = [
-  { value: "alimento", label: "Alimento" },
-  { value: "bebida", label: "Bebida" },
-  { value: "higiene_personal", label: "Higiene Personal" },
-  { value: "limpieza", label: "Producto de Limpieza" },
-  { value: "insumo", label: "Insumo Médico" },
-  { value: "otro", label: "Otro" }
-]
 
 const proveedoresDisponibles = [
   {
@@ -149,23 +140,14 @@ export default function RegistrarCompraPage() {
   const [newProduct, setNewProduct] = useState({
     nombre: "",
     categoria: "",
-    tipo: "",
-    cantidad: "",
-    costo: "",
     stockMinimo: "",
     descripcion: "",
-    perecedero: false,
-    fechaCaducidadDias: "",
-    temperaturaAlmacenamiento: "ambiente",
-    codigoBarras: "",
     proveedorSeleccionado: null as typeof proveedoresDisponibles[0] | null
   })
 
   // Estados para formulario de medicamento
   const [newMedication, setNewMedication] = useState({
     nombre: "",
-    cantidad: "",
-    costo: "",
     stockMinimo: "",
     descripcion: "",
     proveedorSeleccionado: null as typeof proveedoresDisponibles[0] | null
@@ -481,7 +463,7 @@ export default function RegistrarCompraPage() {
   }
 
   const handleSaveProduct = () => {
-    if (!newProduct.nombre || !newProduct.categoria || !newProduct.tipo || !newProduct.cantidad || !newProduct.costo || !newProduct.proveedorSeleccionado) {
+    if (!newProduct.nombre || !newProduct.categoria || !newProduct.proveedorSeleccionado) {
       toast({
         title: "Error",
         description: "Por favor completa todos los campos obligatorios.",
@@ -499,15 +481,8 @@ export default function RegistrarCompraPage() {
     setNewProduct({
       nombre: "",
       categoria: "",
-      tipo: "",
-      cantidad: "",
-      costo: "",
       stockMinimo: "",
       descripcion: "",
-      perecedero: false,
-      fechaCaducidadDias: "",
-      temperaturaAlmacenamiento: "ambiente",
-      codigoBarras: "",
       proveedorSeleccionado: null
     })
     setShowCreateProductModal(false)
@@ -521,7 +496,7 @@ export default function RegistrarCompraPage() {
   }
 
   const handleSaveMedication = () => {
-    if (!newMedication.nombre || !newMedication.cantidad || !newMedication.costo || !newMedication.proveedorSeleccionado) {
+    if (!newMedication.nombre || !newMedication.proveedorSeleccionado) {
       toast({
         title: "Error",
         description: "Por favor completa todos los campos obligatorios.",
@@ -538,8 +513,6 @@ export default function RegistrarCompraPage() {
     // Reset form
     setNewMedication({
       nombre: "",
-      cantidad: "",
-      costo: "",
       stockMinimo: "",
       descripcion: "",
       proveedorSeleccionado: null
@@ -1443,64 +1416,23 @@ export default function RegistrarCompraPage() {
               />
             </div>
 
-            {/* Categoría y Tipo */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Categoría *</Label>
-                <Select value={newProduct.categoria} onValueChange={(value) => setNewProduct({ ...newProduct, categoria: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoriasProductos.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Tipo *</Label>
-                <Select value={newProduct.tipo} onValueChange={(value) => setNewProduct({ ...newProduct, tipo: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tiposProductos.map((tipo) => (
-                      <SelectItem key={tipo.value} value={tipo.value}>
-                        {tipo.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Categoría */}
+            <div className="space-y-2">
+              <Label>Categoría *</Label>
+              <Select value={newProduct.categoria} onValueChange={(value) => setNewProduct({ ...newProduct, categoria: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoriasProductos.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Cantidad y Costo */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="product-cantidad">Cantidad inicial *</Label>
-                <Input
-                  id="product-cantidad"
-                  placeholder="99999"
-                  type="number"
-                  value={newProduct.cantidad}
-                  onChange={(e) => setNewProduct({ ...newProduct, cantidad: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="product-costo">Costo unitario *</Label>
-                <Input
-                  id="product-costo"
-                  placeholder="99999.99"
-                  type="number"
-                  step="0.01"
-                  value={newProduct.costo}
-                  onChange={(e) => setNewProduct({ ...newProduct, costo: e.target.value })}
-                />
-              </div>
-            </div>
 
             {/* Stock mínimo */}
             <div className="space-y-2">
@@ -1526,56 +1458,8 @@ export default function RegistrarCompraPage() {
               />
             </div>
 
-            {/* Código de barras */}
-            <div className="space-y-2">
-              <Label htmlFor="product-codigo-barras">Código de barras</Label>
-              <Input
-                id="product-codigo-barras"
-                placeholder="1234567890123"
-                value={newProduct.codigoBarras}
-                onChange={(e) => setNewProduct({ ...newProduct, codigoBarras: e.target.value })}
-              />
-            </div>
 
-            {/* Perecedero */}
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="product-perecedero"
-                checked={newProduct.perecedero}
-                onCheckedChange={(checked) => setNewProduct({ ...newProduct, perecedero: checked })}
-              />
-              <Label htmlFor="product-perecedero">Producto perecedero</Label>
-            </div>
 
-            {/* Campos específicos para perecederos */}
-            {newProduct.perecedero && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="product-fecha-caducidad">Días para caducar</Label>
-                  <Input
-                    id="product-fecha-caducidad"
-                    placeholder="30"
-                    type="number"
-                    value={newProduct.fechaCaducidadDias}
-                    onChange={(e) => setNewProduct({ ...newProduct, fechaCaducidadDias: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="product-temperatura">Temperatura de almacenamiento</Label>
-                  <Select value={newProduct.temperaturaAlmacenamiento} onValueChange={(value) => setNewProduct({ ...newProduct, temperaturaAlmacenamiento: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar temperatura" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ambiente">Ambiente</SelectItem>
-                      <SelectItem value="refrigerado">Refrigerado (2-6°C)</SelectItem>
-                      <SelectItem value="congelado">Congelado (-18°C)</SelectItem>
-                      <SelectItem value="fresco">Fresco (0-4°C)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </>
-            )}
 
             {/* Proveedor */}
             <div className="space-y-2">
@@ -1691,30 +1575,6 @@ export default function RegistrarCompraPage() {
               />
             </div>
 
-            {/* Cantidad y Costo */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="medication-cantidad">Cantidad inicial *</Label>
-                <Input
-                  id="medication-cantidad"
-                  placeholder="99999"
-                  type="number"
-                  value={newMedication.cantidad}
-                  onChange={(e) => setNewMedication({ ...newMedication, cantidad: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="medication-costo">Costo unitario *</Label>
-                <Input
-                  id="medication-costo"
-                  placeholder="99999.99"
-                  type="number"
-                  step="0.01"
-                  value={newMedication.costo}
-                  onChange={(e) => setNewMedication({ ...newMedication, costo: e.target.value })}
-                />
-              </div>
-            </div>
 
             {/* Stock mínimo */}
             <div className="space-y-2">
