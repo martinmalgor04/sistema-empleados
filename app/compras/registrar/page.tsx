@@ -161,9 +161,8 @@ export default function RegistrarCompraPage() {
   const [datosGenerales, setDatosGenerales] = useState({
     localVendedor: "",
     fecha: "",
-    hora: "",
-    estado: "recibida" as "recibida" | "pendiente",
-    fechaEntrega: "",
+    hora: new Date().toTimeString().slice(0, 5), // Hora actual del sistema
+    estado: "pendiente" as "recibida" | "pendiente",
     comprobante: null as File | null
   })
 
@@ -304,10 +303,10 @@ export default function RegistrarCompraPage() {
       })
       return
     }
-    if (paso === 3 && (!selectedProvider || !datosGenerales.fecha)) {
+    if (paso === 3 && (!selectedProvider || !datosGenerales.fecha || !datosGenerales.hora)) {
       toast({
         title: "Error",
-        description: "Selecciona un proveedor y completa la fecha",
+        description: "Selecciona un proveedor y completa fecha y hora",
         variant: "destructive"
       })
       return
@@ -546,9 +545,8 @@ export default function RegistrarCompraPage() {
                 setDatosGenerales({
                   localVendedor: "",
                   fecha: "",
-                  hora: "",
-                  estado: "recibida",
-                  fechaEntrega: "",
+                  hora: new Date().toTimeString().slice(0, 5),
+                  estado: "pendiente",
                   comprobante: null
                 })
               }}>
@@ -938,7 +936,7 @@ export default function RegistrarCompraPage() {
             <CardTitle>Paso 3: Datos generales</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <div className="space-y-4">
                 <Label>Proveedor:</Label>
 
@@ -964,22 +962,14 @@ export default function RegistrarCompraPage() {
                 ) : (
                   <div className="space-y-3">
                     {/* Toggle buttons */}
-                    <div className="flex items-center justify-center space-x-2">
-                      <Button
-                        variant={!isCreatingProvider ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setIsCreatingProvider(false)}
-                      >
-                        Seleccionar Existente
-                      </Button>
-                      <span className="text-muted-foreground text-sm">o</span>
+                    <div className="flex items-center justify-start space-x-2">
                       <Button
                         variant={isCreatingProvider ? "default" : "outline"}
                         size="sm"
                         onClick={() => setIsCreatingProvider(true)}
                       >
                         <PlusIcon className="h-3 w-3 mr-1" />
-                        Crear Nuevo
+                        Crear Proveedor
                       </Button>
                     </div>
 
@@ -1076,13 +1066,14 @@ export default function RegistrarCompraPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="hora">Hora (aprox.):</Label>
+                <Label htmlFor="hora">Hora:</Label>
                 <div className="flex items-center space-x-2">
                   <Input
                     id="hora"
                     type="time"
                     value={datosGenerales.hora}
-                    onChange={(e) => setDatosGenerales({ ...datosGenerales, hora: e.target.value })}
+                    readOnly
+                    className="bg-muted"
                   />
                   <ClockIcon className="h-5 w-5 text-muted-foreground" />
                 </div>
@@ -1104,18 +1095,6 @@ export default function RegistrarCompraPage() {
                   <Label htmlFor="pendiente">Pendiente</Label>
                 </div>
               </RadioGroup>
-
-              {datosGenerales.estado === "pendiente" && (
-                <div className="space-y-2">
-                  <Label htmlFor="fechaEntrega">Entrega estimada:</Label>
-                  <Input
-                    id="fechaEntrega"
-                    type="date"
-                    value={datosGenerales.fechaEntrega}
-                    onChange={(e) => setDatosGenerales({ ...datosGenerales, fechaEntrega: e.target.value })}
-                  />
-                </div>
-              )}
             </div>
 
             <div className="space-y-2">
@@ -1176,7 +1155,7 @@ export default function RegistrarCompraPage() {
           <CardContent className="space-y-6">
             <div className="p-4 bg-muted rounded-lg">
               <h3 className="font-medium mb-2">
-                Compra en {datosGenerales.localVendedor}, del día {new Date(datosGenerales.fecha).toLocaleDateString('es-ES')} a las {datosGenerales.hora}
+                Compra del día {new Date(datosGenerales.fecha).toLocaleDateString('es-ES')} a las {datosGenerales.hora}
               </h3>
             </div>
 
