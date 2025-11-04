@@ -9,7 +9,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { MenuIcon, HomeIcon, UserPlusIcon, ShoppingCartIcon, PillIcon, LogOutIcon, UserCogIcon, ChevronsLeftIcon, ChevronsRightIcon, UserIcon } from "lucide-react"
+import { MenuIcon, HomeIcon, UserPlusIcon, ShoppingCartIcon, PillIcon, PackageIcon, LogOutIcon, UserCogIcon, ChevronsLeftIcon, ChevronsRightIcon, UserIcon } from "lucide-react"
 import React, { useEffect, useState } from "react"
 
 // Definición base de los items de navegación
@@ -42,17 +42,24 @@ const baseNavItems = [
     roles: ["supervisor"],
     children: ["/compras/necesidades", "/compras/registrar", "/compras/pedidos", "/compras/historial"]
   },
-  { 
-    href: "/menu-medicamentos", 
-    label: "Medicamentos", 
-    icon: PillIcon, 
+  {
+    href: "/menu-medicamentos",
+    label: "Medicamentos",
+    icon: PillIcon,
     roles: ["supervisor", "enfermero"],
     children: ["/menu-medicamentos/agregar", "/menu-medicamentos/ranking"]
   },
-  { 
-    href: "/perfil", 
-    label: "Mi Perfil", 
-    icon: UserIcon, 
+  {
+    href: "/menu-productos",
+    label: "Productos",
+    icon: PackageIcon,
+    roles: ["supervisor", "enfermero"],
+    children: ["/menu-productos/agregar", "/menu-productos/ranking"]
+  },
+  {
+    href: "/perfil",
+    label: "Mi Perfil",
+    icon: UserIcon,
     roles: ["supervisor", "enfermero"],
     children: ["/cambiar-contrasena"]
   },

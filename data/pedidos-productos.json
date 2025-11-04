@@ -1,0 +1,36 @@
+[
+  {
+    "id": 1,
+    "producto_id": 2,
+    "producto_nombre": "Pan Integral",
+    "cantidad_solicitada": 15,
+    "fecha_pedido": "2024-11-05",
+    "fecha_estimada_entrega": "2024-11-07",
+    "estado": "pendiente",
+    "proveedor": {
+      "id": 3,
+      "nombre": "Panadería Artesanal",
+      "telefono": "3333333333",
+      "email": "contacto@panartesanal.com"
+    },
+    "costo_total": 675.00,
+    "observaciones": "Pedido automático por stock bajo"
+  },
+  {
+    "id": 2,
+    "producto_id": 5,
+    "producto_nombre": "Pañales Adultos",
+    "cantidad_solicitada": 30,
+    "fecha_pedido": "2024-11-04",
+    "fecha_estimada_entrega": "2024-11-08",
+    "estado": "en_transito",
+    "proveedor": {
+      "id": 5,
+      "nombre": "Productos Médicos Plus",
+      "telefono": "1111111111",
+      "email": "ventas@medplus.com"
+    },
+    "costo_total": 2850.00,
+    "observaciones": "Pedido urgente por stock crítico"
+  }
+]

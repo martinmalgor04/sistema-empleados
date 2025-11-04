@@ -1,0 +1,196 @@
+[
+  {
+    "id": 1,
+    "nombre": "Leche Entera 1L",
+    "descripcion": "Leche entera pasteurizada",
+    "categoria": "lacteos",
+    "tipo": "alimento",
+    "cantidad": 24,
+    "stock_minimo": 12,
+    "costo": 85.50,
+    "estado": "stock",
+    "imagen": "/producto-placeholder.png",
+    "proveedor_principal": {
+      "id": 1,
+      "nombre": "Distribuidora Láctea del Valle",
+      "telefono": "5555555555",
+      "email": "ventas@lacteavalley.com"
+    },
+    "proveedores": [
+      {
+        "id": 1,
+        "nombre": "Distribuidora Láctea del Valle",
+        "telefono": "5555555555",
+        "email": "ventas@lacteavalley.com"
+      },
+      {
+        "id": 2,
+        "nombre": "Alimentos Frescos SA",
+        "telefono": "4444444444",
+        "email": "info@alimentosfrescos.com"
+      }
+    ],
+    "uso_mensual": [45, 52, 48, 61, 39],
+    "uso_semanal": [45, 52, 48, 61, 39, 28, 15],
+    "frecuencia_uso": 61,
+    "perecedero": true,
+    "fecha_caducidad_dias": 7,
+    "temperatura_almacenamiento": "2-6°C",
+    "nutricion": {
+      "calorias": 146,
+      "proteinas": 7.9,
+      "grasas": 8.0,
+      "carbohidratos": 11.7,
+      "unidad_medida": "por 100ml"
+    },
+    "codigo_barras": "7791234567890"
+  },
+  {
+    "id": 2,
+    "nombre": "Pan Integral",
+    "descripcion": "Pan integral de masa madre",
+    "categoria": "panaderia",
+    "tipo": "alimento",
+    "cantidad": 8,
+    "stock_minimo": 15,
+    "costo": 45.00,
+    "estado": "faltante",
+    "imagen": "/producto-placeholder.png",
+    "proveedor_principal": {
+      "id": 3,
+      "nombre": "Panadería Artesanal",
+      "telefono": "3333333333",
+      "email": "contacto@panartesanal.com"
+    },
+    "proveedores": [
+      {
+        "id": 3,
+        "nombre": "Panadería Artesanal",
+        "telefono": "3333333333",
+        "email": "contacto@panartesanal.com"
+      }
+    ],
+    "uso_mensual": [28, 35, 32, 42, 25],
+    "uso_semanal": [28, 35, 32, 42, 25, 18, 8],
+    "frecuencia_uso": 42,
+    "perecedero": true,
+    "fecha_caducidad_dias": 3,
+    "temperatura_almacenamiento": "ambiente",
+    "nutricion": {
+      "calorias": 250,
+      "proteinas": 9.0,
+      "grasas": 3.2,
+      "carbohidratos": 45.0,
+      "fibra": 6.8,
+      "unidad_medida": "por 100g"
+    },
+    "codigo_barras": "7792345678901"
+  },
+  {
+    "id": 3,
+    "nombre": "Jabón Líquido para Manos",
+    "descripcion": "Jabón antibacterial líquido",
+    "categoria": "higiene",
+    "tipo": "higiene_personal",
+    "cantidad": 35,
+    "stock_minimo": 10,
+    "costo": 120.00,
+    "estado": "stock",
+    "imagen": "/producto-placeholder.png",
+    "proveedor_principal": {
+      "id": 4,
+      "nombre": "Productos de Limpieza SA",
+      "telefono": "2222222222",
+      "email": "ventas@limpiezasa.com"
+    },
+    "proveedores": [
+      {
+        "id": 4,
+        "nombre": "Productos de Limpieza SA",
+        "telefono": "2222222222",
+        "email": "ventas@limpiezasa.com"
+      }
+    ],
+    "uso_mensual": [12, 15, 18, 22, 16],
+    "uso_semanal": [12, 15, 18, 22, 16, 8, 5],
+    "frecuencia_uso": 22,
+    "perecedero": false,
+    "fecha_caducidad_dias": 365,
+    "temperatura_almacenamiento": "ambiente",
+    "codigo_barras": "7793456789012"
+  },
+  {
+    "id": 4,
+    "nombre": "Yogur Natural",
+    "descripcion": "Yogur natural sin azúcar",
+    "categoria": "lacteos",
+    "tipo": "alimento",
+    "cantidad": 18,
+    "stock_minimo": 20,
+    "costo": 65.00,
+    "estado": "stock",
+    "imagen": "/producto-placeholder.png",
+    "proveedor_principal": {
+      "id": 1,
+      "nombre": "Distribuidora Láctea del Valle",
+      "telefono": "5555555555",
+      "email": "ventas@lacteavalley.com"
+    },
+    "proveedores": [
+      {
+        "id": 1,
+        "nombre": "Distribuidora Láctea del Valle",
+        "telefono": "5555555555",
+        "email": "ventas@lacteavalley.com"
+      }
+    ],
+    "uso_mensual": [38, 42, 35, 48, 31],
+    "uso_semanal": [38, 42, 35, 48, 31, 22, 12],
+    "frecuencia_uso": 48,
+    "perecedero": true,
+    "fecha_caducidad_dias": 14,
+    "temperatura_almacenamiento": "2-6°C",
+    "nutricion": {
+      "calorias": 61,
+      "proteinas": 3.5,
+      "grasas": 3.3,
+      "carbohidratos": 4.7,
+      "calcio": 120,
+      "unidad_medida": "por 100g"
+    },
+    "codigo_barras": "7794567890123"
+  },
+  {
+    "id": 5,
+    "nombre": "Pañales Adultos",
+    "descripcion": "Pañales para adultos absorbentes",
+    "categoria": "higiene",
+    "tipo": "higiene_personal",
+    "cantidad": 5,
+    "stock_minimo": 25,
+    "costo": 95.00,
+    "estado": "faltante",
+    "imagen": "/producto-placeholder.png",
+    "proveedor_principal": {
+      "id": 5,
+      "nombre": "Productos Médicos Plus",
+      "telefono": "1111111111",
+      "email": "ventas@medplus.com"
+    },
+    "proveedores": [
+      {
+        "id": 5,
+        "nombre": "Productos Médicos Plus",
+        "telefono": "1111111111",
+        "email": "ventas@medplus.com"
+      }
+    ],
+    "uso_mensual": [8, 12, 15, 18, 10],
+    "uso_semanal": [8, 12, 15, 18, 10, 6, 3],
+    "frecuencia_uso": 18,
+    "perecedero": false,
+    "fecha_caducidad_dias": 730,
+    "temperatura_almacenamiento": "ambiente",
+    "codigo_barras": "7795678901234"
+  }
+]

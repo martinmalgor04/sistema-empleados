@@ -18,7 +18,11 @@ export const ROUTES = {
   // Medicamentos
   MEDICATIONS: '/menu-medicamentos',
   MEDICATION_DETAIL: (id: string) => `/menu-medicamentos/${id}`,
-  
+
+  // Productos
+  PRODUCTS: '/menu-productos',
+  PRODUCT_DETAIL: (id: string) => `/menu-productos/${id}`,
+
   // Compras
   PURCHASES: '/compras',
   PURCHASE_DETAIL: (id: string) => `/compras/${id}`,
@@ -36,6 +40,7 @@ export const PROTECTED_ROUTES = [
   ROUTES.DASHBOARD,
   ROUTES.EMPLOYEES,
   ROUTES.MEDICATIONS,
+  ROUTES.PRODUCTS,
   ROUTES.PURCHASES,
   ROUTES.PROFILE,
   ROUTES.ATTENDANCE,
@@ -58,5 +63,6 @@ export const SUPERVISOR_ROUTES = [
 
 export const EMPLOYEE_ROUTES = [
   ROUTES.MEDICATIONS,
+  ROUTES.PRODUCTS,
   ROUTES.ATTENDANCE,
 ] as const 
