@@ -9,60 +9,73 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { MenuIcon, HomeIcon, UserPlusIcon, ShoppingCartIcon, PillIcon, PackageIcon, LogOutIcon, UserCogIcon, ChevronsLeftIcon, ChevronsRightIcon, UserIcon } from "lucide-react"
+import { MenuIcon, HomeIcon, UserPlusIcon, ShoppingCartIcon, PillIcon, PackageIcon, LogOutIcon, UserCogIcon, ChevronsLeftIcon, ChevronsRightIcon, UserIcon, ChevronDownIcon, ChevronRightIcon } from "lucide-react"
 import React, { useEffect, useState } from "react"
 
 // Definición base de los items de navegación
-const baseNavItems = [
-  { 
-    href: "/menu-principal", 
-    label: "Inicio", 
-    icon: HomeIcon, 
-    roles: ["supervisor", "enfermero"],
-    children: []
-  },
-  { 
-    href: "/empleados", 
-    label: "Empleados", 
-    icon: UserCogIcon, 
-    roles: ["supervisor"],
-    children: ["/registro-empleados", "/empleado"]
-  },
-  { 
-    href: "/registro-asistencia", 
-    label: "Reg. Asistencia", 
-    icon: UserPlusIcon, 
-    roles: ["supervisor", "enfermero"],
-    children: ["/informe-presentismo"]
-  },
-  { 
-    href: "/compras", 
-    label: "Compras", 
-    icon: ShoppingCartIcon, 
-    roles: ["supervisor"],
-    children: ["/compras/necesidades", "/compras/registrar", "/compras/pedidos", "/compras/historial"]
+interface NavItem {
+  href?: string;
+  label: string;
+  icon: any;
+  roles: string[];
+  children?: NavItem[];
+  isSection?: boolean;
+  defaultExpanded?: boolean;
+}
+
+const baseNavItems: NavItem[] = [
+  {
+    href: "/menu-principal",
+    label: "Inicio",
+    icon: HomeIcon,
+    roles: ["supervisor", "enfermero"]
   },
   {
-    href: "/menu-medicamentos",
-    label: "Medicamentos",
-    icon: PillIcon,
-    roles: ["supervisor", "enfermero"],
-    children: ["/menu-medicamentos/agregar", "/menu-medicamentos/ranking"]
+    href: "/empleados",
+    label: "Empleados",
+    icon: UserCogIcon,
+    roles: ["supervisor"]
   },
   {
-    href: "/menu-productos",
-    label: "Productos",
+    href: "/registro-asistencia",
+    label: "Reg. Asistencia",
+    icon: UserPlusIcon,
+    roles: ["supervisor", "enfermero"]
+  },
+  {
+    href: "/compras",
+    label: "Compras",
+    icon: ShoppingCartIcon,
+    roles: ["supervisor"]
+  },
+  // Sección Inventario con medicamentos y productos
+  {
+    label: "Inventario",
     icon: PackageIcon,
     roles: ["supervisor", "enfermero"],
-    children: ["/menu-productos/agregar", "/menu-productos/ranking"]
+    isSection: true,
+    defaultExpanded: true,
+    children: [
+      {
+        href: "/menu-medicamentos",
+        label: "Medicamentos",
+        icon: PillIcon,
+        roles: ["supervisor", "enfermero"]
+      },
+      {
+        href: "/menu-productos",
+        label: "Productos",
+        icon: PackageIcon,
+        roles: ["supervisor", "enfermero"]
+      }
+    ]
   },
   {
     href: "/perfil",
     label: "Mi Perfil",
     icon: UserIcon,
-    roles: ["supervisor", "enfermero"],
-    children: ["/cambiar-contrasena"]
-  },
+    roles: ["supervisor", "enfermero"]
+  }
 ]
 
 interface CustomSidebarProps {
@@ -74,6 +87,7 @@ export function CustomSidebar({ isCollapsed, toggleSidebar }: CustomSidebarProps
   const pathname = usePathname()
   const [userRole, setUserRole] = useState<string | null>(null)
   const [currentNavItems, setCurrentNavItems] = useState(baseNavItems); // Inicia con todos, luego filtra
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     const loggedInUserString = localStorage.getItem("loggedInUser");
@@ -82,76 +96,235 @@ export function CustomSidebar({ isCollapsed, toggleSidebar }: CustomSidebarProps
         const loggedInUser = JSON.parse(loggedInUserString);
         const role = loggedInUser?.rol || null;
         setUserRole(role);
-        
+
         if (role) {
+          // Filtrar items por rol
           const filteredItems = baseNavItems.filter(item => item.roles.includes(role));
+
           setCurrentNavItems(filteredItems);
+
+          // Inicializar estado de secciones expandidas
+          const initialExpanded: Record<string, boolean> = {};
+          filteredItems.forEach(item => {
+            if (item.isSection) {
+              const stored = localStorage.getItem(`sidebar-section-${item.label}`);
+              if (stored !== null) {
+                initialExpanded[item.label] = JSON.parse(stored);
+              } else {
+                initialExpanded[item.label] = item.defaultExpanded || false;
+              }
+            }
+          });
+
+          // Auto-expandir sección que contiene la ruta activa (solo secciones sin href directo)
+          filteredItems.forEach(item => {
+            if (item.isSection && item.children && !item.href) {
+              const hasActiveChild = item.children.some(child => {
+                if (child.href && (pathname === child.href || pathname.startsWith(child.href + '/'))) {
+                  return true;
+                }
+                if (child.children) {
+                  return child.children.some(grandChild =>
+                    grandChild.href && (pathname === grandChild.href || pathname.startsWith(grandChild.href + '/'))
+                  );
+                }
+                return false;
+              });
+
+              if (hasActiveChild) {
+                initialExpanded[item.label] = true;
+              }
+            }
+          });
+
+          setExpandedSections(initialExpanded);
         } else {
-          // Si no hay rol, o es un rol no reconocido, mostrar solo inicio o ninguno (según se decida)
-          // Por ahora, mostramos los que no requieren rol específico o son para todos (si los hubiera)
-          // O, más simple, si no hay rol, no mostrar nada o solo el inicio si es público.
-          // Aquí, si no hay rol, se podría mostrar un conjunto mínimo o vaciar currentNavItems.
-          // Para este caso, si no hay rol, asumimos que no puede ver nada más que quizás inicio (si se marca así).
-          // Por ahora, si no hay rol, filtramos para no mostrar nada de baseNavItems (ya que todos tienen roles definidos)
-          setCurrentNavItems(baseNavItems.filter(item => item.roles.includes("none"))); // Asume que "none" es un rol que no existe
+          setCurrentNavItems([]);
+          setExpandedSections({});
         }
 
       } catch (error) {
         console.error("Error parsing loggedInUser from localStorage:", error);
         setUserRole(null);
-        setCurrentNavItems(baseNavItems.filter(item => item.roles.includes("none")));
+        setCurrentNavItems([]);
+        setExpandedSections({});
       }
     } else {
-      setUserRole(null); // No hay usuario logueado
-      setCurrentNavItems(baseNavItems.filter(item => item.roles.includes("none")));
+      setUserRole(null);
+      setCurrentNavItems([]);
+      setExpandedSections({});
     }
-  }, [pathname]); // Re-ejecutar si cambia la ruta para asegurar que el rol sigue siendo válido o refrescar si es necesario
+  }, [pathname]);
 
-  const isActiveRoute = (item: any) => {
+  const toggleSection = (sectionLabel: string) => {
+    const newExpanded = !expandedSections[sectionLabel];
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionLabel]: newExpanded
+    }));
+    localStorage.setItem(`sidebar-section-${sectionLabel}`, JSON.stringify(newExpanded));
+  };
+
+  const isActiveRoute = (item: NavItem): boolean => {
     // Exact match
-    if (pathname === item.href) return true
-    
-    // Check if current path is a child route
-    return item.children.some((childPath: string) => {
-      // Handle dynamic routes like /empleado/[id]
-      if (childPath.includes('[id]')) {
-        const baseRoute = childPath.replace('/[id]', '')
-        return pathname.startsWith(baseRoute)
-      }
-      return pathname === childPath || pathname.startsWith(childPath + '/')
-    })
-  }
+    if (item.href && pathname === item.href) return true;
 
-  const renderNavLinks = (isMobile = false) =>
-    currentNavItems.map((item) => {
-      const isActive = isActiveRoute(item)
-      
+    // Check if current path is a child route
+    if (!item.children) return false;
+
+    return item.children.some((child: NavItem) => {
+      if (child.href && (pathname === child.href || pathname.startsWith(child.href + '/'))) return true;
+      if (child.children) {
+        return child.children.some((grandChild: NavItem) =>
+          grandChild.href && (pathname === grandChild.href || pathname.startsWith(grandChild.href + '/'))
+        );
+      }
+      return false;
+    });
+  };
+
+  const renderNavItem = (item: NavItem, isMobile = false, level = 0): React.ReactNode => {
+    const isActive = isActiveRoute(item);
+
+    // Si es un item simple (sin hijos) o es una sección sin hijos
+    if (!item.children) {
       return (
-        <Link key={item.label} href={item.href} legacyBehavior passHref>
+        <Link key={item.label} href={item.href || '#'} legacyBehavior passHref>
           <Button
-            variant={isActive ? "secondary" : "ghost"}
+            variant="ghost"
             className={cn(
-              "w-full justify-start transition-colors relative",
+              "w-full justify-start transition-colors relative hover:bg-accent hover:text-accent-foreground",
               isMobile && "text-lg py-3",
               !isMobile && isCollapsed && "justify-center px-2",
               !isMobile && !isCollapsed && "px-3",
-              isActive && "bg-primary/10 text-primary font-medium",
-              isActive && !isMobile && "border-r-2 border-primary"
+              isActive && "bg-primary/10 text-primary font-medium border-r-2 border-primary",
+              level === 1 && !isMobile && !isCollapsed && "ml-2 pl-5",
+              level === 2 && !isMobile && !isCollapsed && "ml-8 pl-11",
+              level > 0 && "text-xs font-normal"
             )}
           >
-            <item.icon className={cn(
-              "h-5 w-5",
-              isMobile && "h-6 w-6 mr-4",
-              !isMobile && isCollapsed && "mr-0",
-              !isMobile && !isCollapsed && "mr-3",
-              isActive && "text-primary"
+            {item.icon && (
+              <item.icon className={cn(
+                level > 0 ? "h-3 w-3" : "h-4 w-4",
+                isMobile && (level > 0 ? "h-4 w-4 mr-2" : "h-5 w-5 mr-3"),
+                !isMobile && isCollapsed && "mr-0",
+                !isMobile && !isCollapsed && (level > 0 ? "mr-1.5" : "mr-2"),
+                isActive && "text-primary"
               )} />
-            {!isMobile && !isCollapsed && item.label}
-            {isMobile && item.label}
+            )}
+            {!isMobile && !isCollapsed && (
+              <span className={cn(level > 0 && "text-xs")}>
+                {level === 0 ? item.label : item.label}
+              </span>
+            )}
+            {isMobile && (
+              <span className={cn(level > 0 && "text-xs")}>
+                {item.label}
+              </span>
+            )}
           </Button>
         </Link>
-      )
-    })
+      );
+    }
+
+    // Si es una sección con children
+    const isExpanded = expandedSections[item.label] || false;
+    const ChevronIcon = isExpanded ? ChevronDownIcon : ChevronRightIcon;
+
+    // Si la sección tiene href, es clicable (sin mostrar chevron)
+    if (item.href) {
+      return (
+        <div key={item.label} className="space-y-0.5">
+          {/* Header de la sección con enlace */}
+          <Link href={item.href} legacyBehavior passHref>
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-start transition-colors relative hover:bg-accent hover:text-accent-foreground",
+                isMobile && "text-lg py-3",
+                !isMobile && isCollapsed && "justify-center px-2",
+                !isMobile && !isCollapsed && "px-3",
+                isActive && "bg-primary/10 text-primary font-medium border-r-2 border-primary",
+                level === 1 && !isMobile && !isCollapsed && "ml-2 pl-5",
+                level > 0 && "text-xs font-normal"
+              )}
+            >
+              {item.icon && (
+                <item.icon className={cn(
+                  level > 0 ? "h-3 w-3" : "h-4 w-4",
+                  isMobile && (level > 0 ? "h-4 w-4 mr-2" : "h-5 w-5 mr-3"),
+                  !isMobile && isCollapsed && "mr-0",
+                  !isMobile && !isCollapsed && (level > 0 ? "mr-1.5" : "mr-2"),
+                  isActive && "text-primary"
+                )} />
+              )}
+              {!isMobile && !isCollapsed && (
+                <span className={cn("flex-1 text-left", level > 0 && "text-xs")}>{item.label}</span>
+              )}
+              {isMobile && (
+                <span className={cn("flex-1 text-left", level > 0 && "text-xs")}>{item.label}</span>
+              )}
+            </Button>
+          </Link>
+
+          {/* Items hijos de la sección - siempre expandidos para estos items */}
+          {(!isCollapsed || isMobile) && (
+            <div className={cn(!isMobile && !isCollapsed && "ml-6 space-y-0.5")}>
+              {item.children.map((child) => renderNavItem(child, isMobile, level + 1))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Sección sin href (como la sección "Inventario" padre)
+    return (
+      <div key={item.label} className="space-y-0.5">
+        {/* Header de la sección */}
+        <Button
+          variant="ghost"
+          onClick={() => toggleSection(item.label)}
+          className={cn(
+            "w-full justify-start transition-colors relative hover:bg-accent hover:text-accent-foreground",
+            isMobile && "text-lg py-3",
+            !isMobile && isCollapsed && "justify-center px-2",
+            !isMobile && !isCollapsed && "px-3",
+            isActive && "text-primary font-medium"
+          )}
+        >
+          <item.icon className={cn(
+            "h-4 w-4",
+            isMobile && "h-5 w-5 mr-3",
+            !isMobile && isCollapsed && "mr-0",
+            !isMobile && !isCollapsed && "mr-2",
+            isActive && "text-primary"
+          )} />
+          {!isMobile && !isCollapsed && (
+            <>
+              <span className="flex-1 text-left">{item.label}</span>
+              <ChevronIcon className="h-4 w-4 ml-auto transition-transform duration-200" />
+            </>
+          )}
+          {isMobile && (
+            <>
+              <span className="flex-1 text-left">{item.label}</span>
+              <ChevronIcon className="h-5 w-5 ml-auto transition-transform duration-200" />
+            </>
+          )}
+        </Button>
+
+        {/* Items hijos de la sección */}
+        {isExpanded && (!isCollapsed || isMobile) && (
+          <div className={cn(!isMobile && !isCollapsed && "ml-6 space-y-0.5")}>
+            {item.children.map((child) => renderNavItem(child, isMobile, level + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderNavLinks = (isMobile = false) =>
+    currentNavItems.map((item) => renderNavItem(item, isMobile))
 
   return (
     <>
@@ -161,7 +334,7 @@ export function CustomSidebar({ isCollapsed, toggleSidebar }: CustomSidebarProps
           isCollapsed ? "md:w-20" : "md:w-64"
         )}>
         <div className={cn(
-            "flex items-center h-20 border-b px-4",
+            "flex items-center h-20 border-b px-5",
             isCollapsed ? "justify-center" : "justify-between"
           )}>
           {isCollapsed ? (
@@ -180,10 +353,10 @@ export function CustomSidebar({ isCollapsed, toggleSidebar }: CustomSidebarProps
             </>
           )}
         </div>
-        <nav className={cn("flex-grow p-3 space-y-1.5", isCollapsed && "overflow-x-hidden")}>
+        <nav className={cn("flex-grow p-4 space-y-1.5", isCollapsed && "overflow-x-hidden")}>
           {renderNavLinks()} 
         </nav>
-        <div className={cn("p-3 border-t mt-auto")}>
+        <div className={cn("p-4 border-t mt-auto")}>
           <Link href="/login" legacyBehavior passHref>
             <Button asChild variant="outline" className={cn("w-full justify-start", isCollapsed && "justify-center px-2")} onClick={() => localStorage.removeItem('loggedInUser')}> 
               <a>
