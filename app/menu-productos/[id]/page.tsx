@@ -355,13 +355,6 @@ export default function DetalleProductoPage() {
                   <>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground flex items-center gap-1">
-                        <ClockIcon className="h-4 w-4" />
-                        Días para caducar:
-                      </span>
-                      <span>{producto.fecha_caducidad_dias} días</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground flex items-center gap-1">
                         <ThermometerIcon className="h-4 w-4" />
                         Almacenamiento:
                       </span>
