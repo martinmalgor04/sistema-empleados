@@ -19,6 +19,10 @@ import {
   ClockIcon
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import productosData from "@/data/productos.json"
 import estadisticasProductosData from "@/data/estadisticas-productos.json"
 
@@ -70,6 +74,9 @@ export default function DetalleProductoPage() {
   const [producto, setProducto] = useState<Producto | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("informacion")
+  const [showAjusteDialog, setShowAjusteDialog] = useState(false)
+  const [tipoAjuste, setTipoAjuste] = useState("")
+  const [cantidadAjuste, setCantidadAjuste] = useState("")
 
   useEffect(() => {
     const productId = parseInt(params.id as string)
@@ -169,6 +176,84 @@ export default function DetalleProductoPage() {
           Volver
         </Button>
         <div className="flex items-center space-x-2">
+          <Dialog open={showAjusteDialog} onOpenChange={setShowAjusteDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                Ajuste Stock
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Ajuste Stock</DialogTitle>
+                <DialogDescription>
+                  Selecciona el tipo de ajuste para el stock del producto.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="tipo-ajuste">Tipo de ajuste</Label>
+                  <Select value={tipoAjuste} onValueChange={setTipoAjuste}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ingreso">Ingreso</SelectItem>
+                      <SelectItem value="salida">Salida</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="cantidad">Cantidad</Label>
+                  <Input
+                    id="cantidad"
+                    type="number"
+                    placeholder="99999"
+                    value={cantidadAjuste}
+                    onChange={(e) => setCantidadAjuste(e.target.value)}
+                    min="1"
+                  />
+                </div>
+                <div className="flex space-x-2 pt-4">
+                  <Button
+                    className="flex-1"
+                    onClick={() => {
+                      if (!tipoAjuste || !cantidadAjuste) {
+                        toast({
+                          title: "Error",
+                          description: "Todos los campos son obligatorios.",
+                          variant: "destructive"
+                        })
+                        return
+                      }
+
+                      const cantidad = parseInt(cantidadAjuste)
+                      if (isNaN(cantidad) || cantidad <= 0) {
+                        toast({
+                          title: "Error",
+                          description: "La cantidad debe ser un número mayor a cero.",
+                          variant: "destructive"
+                        })
+                        return
+                      }
+
+                      toast({
+                        title: "Ajuste registrado",
+                        description: `Se registró el ajuste de ${cantidad} unidades de tipo "${tipoAjuste}" correctamente.`,
+                      })
+                      setShowAjusteDialog(false)
+                      setTipoAjuste("")
+                      setCantidadAjuste("")
+                    }}
+                  >
+                    Registrar
+                  </Button>
+                  <Button variant="outline" className="flex-1" onClick={() => setShowAjusteDialog(false)}>
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button variant="outline" size="sm">
             <EditIcon className="h-4 w-4 mr-2" />
             Editar

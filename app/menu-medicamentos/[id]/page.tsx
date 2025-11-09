@@ -59,9 +59,8 @@ export default function MedicamentoDetallePage() {
   const [activeTab, setActiveTab] = useState("uso")
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [showIngresoDialog, setShowIngresoDialog] = useState(false)
-  const [cantidadIngreso, setCantidadIngreso] = useState("")
-  const [costoIngreso, setCostoIngreso] = useState("")
-  const [proveedorIngreso, setProveedorIngreso] = useState("")
+  const [tipoAjuste, setTipoAjuste] = useState("")
+  const [cantidadAjuste, setCantidadAjuste] = useState("")
 
   useEffect(() => {
     const medicamentoId = parseInt(params.id as string)
@@ -110,7 +109,7 @@ export default function MedicamentoDetallePage() {
   }
 
   const handleRegistrarIngreso = () => {
-    if (!cantidadIngreso || !costoIngreso || !proveedorIngreso) {
+    if (!tipoAjuste || !cantidadAjuste) {
       toast({
         title: "Error",
         description: "Todos los campos son obligatorios.",
@@ -118,15 +117,24 @@ export default function MedicamentoDetallePage() {
       })
       return
     }
-    
+
+    const cantidad = parseInt(cantidadAjuste)
+    if (isNaN(cantidad) || cantidad <= 0) {
+      toast({
+        title: "Error",
+        description: "La cantidad debe ser un número mayor a cero.",
+        variant: "destructive"
+      })
+      return
+    }
+
     toast({
-      title: "Ingreso registrado",
-      description: `Se registraron ${cantidadIngreso} unidades correctamente.`,
+      title: "Ajuste registrado",
+      description: `Se registró el ajuste de ${cantidad} unidades de tipo "${tipoAjuste}" correctamente.`,
     })
     setShowIngresoDialog(false)
-    setCantidadIngreso("")
-    setCostoIngreso("")
-    setProveedorIngreso("")
+    setTipoAjuste("")
+    setCantidadAjuste("")
   }
 
   const handleRealizarPedido = () => {
@@ -272,51 +280,39 @@ export default function MedicamentoDetallePage() {
             <Dialog open={showIngresoDialog} onOpenChange={setShowIngresoDialog}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="w-full">
-                  Registrar ingreso
+                  Ajuste Stock
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Registrar ingreso</DialogTitle>
+                  <DialogTitle>Ajuste Stock</DialogTitle>
                   <DialogDescription>
-                    Ingresa los detalles del nuevo stock recibido.
+                    Ingresa los detalles del ajuste de stock.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="cantidad">Cantidad</Label>
-                      <Input
-                        id="cantidad"
-                        placeholder="99999"
-                        value={cantidadIngreso}
-                        onChange={(e) => setCantidadIngreso(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="costo">Costo</Label>
-                      <Input
-                        id="costo"
-                        placeholder="99999"
-                        value={costoIngreso}
-                        onChange={(e) => setCostoIngreso(e.target.value)}
-                      />
-                    </div>
-                  </div>
                   <div>
-                    <Label htmlFor="proveedor">Proveedor</Label>
-                    <Select value={proveedorIngreso} onValueChange={setProveedorIngreso}>
+                    <Label htmlFor="tipo-ajuste">Tipo de ajuste</Label>
+                    <Select value={tipoAjuste} onValueChange={setTipoAjuste}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Buscar proveedor" />
+                        <SelectValue placeholder="Seleccionar tipo" />
                       </SelectTrigger>
                       <SelectContent>
-                        {medicamento.proveedores.map((proveedor) => (
-                          <SelectItem key={proveedor.id} value={proveedor.id.toString()}>
-                            {proveedor.nombre}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="ingreso">Ingreso</SelectItem>
+                        <SelectItem value="salida">Salida</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="cantidad">Cantidad</Label>
+                    <Input
+                      id="cantidad"
+                      type="number"
+                      placeholder="99999"
+                      value={cantidadAjuste}
+                      onChange={(e) => setCantidadAjuste(e.target.value)}
+                      min="1"
+                    />
                   </div>
                   <div className="flex space-x-2 pt-4">
                     <Button className="flex-1" onClick={handleRegistrarIngreso}>
@@ -374,7 +370,7 @@ export default function MedicamentoDetallePage() {
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button variant="outline" className="w-full">
-                        Registrar ingreso
+                        Ajuste Stock
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
