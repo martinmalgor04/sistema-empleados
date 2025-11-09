@@ -57,7 +57,6 @@ export default function MedicamentoDetallePage() {
   const { toast } = useToast()
   const [medicamento, setMedicamento] = useState<Medicamento | null>(null)
   const [activeTab, setActiveTab] = useState("uso")
-  const [showResetDialog, setShowResetDialog] = useState(false)
   const [showIngresoDialog, setShowIngresoDialog] = useState(false)
   const [tipoAjuste, setTipoAjuste] = useState("")
   const [cantidadAjuste, setCantidadAjuste] = useState("")
@@ -100,13 +99,6 @@ export default function MedicamentoDetallePage() {
     return <Badge variant="default">En stock</Badge>
   }
 
-  const handleResetearCiclo = () => {
-    toast({
-      title: "Ciclo reiniciado",
-      description: "Las estadísticas de uso han sido reiniciadas.",
-    })
-    setShowResetDialog(false)
-  }
 
   const handleRegistrarIngreso = () => {
     if (!tipoAjuste || !cantidadAjuste) {
@@ -275,7 +267,7 @@ export default function MedicamentoDetallePage() {
           {/* Botones de acción */}
           <div className="space-y-3">
             <Button variant="outline" className="w-full" onClick={handleRealizarPedido}>
-              Realizar pedido
+              Agregar Lista Necesidad
             </Button>
             <Dialog open={showIngresoDialog} onOpenChange={setShowIngresoDialog}>
               <DialogTrigger asChild>
@@ -325,29 +317,6 @@ export default function MedicamentoDetallePage() {
                 </div>
               </DialogContent>
             </Dialog>
-            <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full">
-                  Reiniciar ciclo
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Reiniciar ciclo</DialogTitle>
-                  <DialogDescription>
-                    Reiniciar el control estadístico de uso al día de la fecha
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="flex space-x-2 pt-4">
-                  <Button className="flex-1" onClick={handleResetearCiclo}>
-                    Reiniciar
-                  </Button>
-                  <Button variant="outline" className="flex-1 text-destructive" onClick={() => setShowResetDialog(false)}>
-                    Cancelar
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
           </div>
         </TabsContent>
 
@@ -367,19 +336,6 @@ export default function MedicamentoDetallePage() {
                   <Button variant="outline" className="w-full">
                     Importar prospecto
                   </Button>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="w-full">
-                        Ajuste Stock
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Registrar ingreso</DialogTitle>
-                      </DialogHeader>
-                      {/* Mismo contenido que el modal anterior */}
-                    </DialogContent>
-                  </Dialog>
                 </div>
               </div>
             </CardContent>
@@ -411,24 +367,10 @@ export default function MedicamentoDetallePage() {
                         </div>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
-                      Realizar pedido
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
-          </div>
-          <div className="space-y-3 pt-4">
-            <Button variant="outline" className="w-full" onClick={handleRealizarPedido}>
-              Realizar pedido
-            </Button>
-            <Button variant="outline" className="w-full">
-              Pedido
-            </Button>
-            <Button variant="outline" className="w-full">
-              Registrar ingreso
-            </Button>
           </div>
         </TabsContent>
       </Tabs>
